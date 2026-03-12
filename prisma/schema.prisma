@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+
+  accounts     BankAccount[]
+  budgets      Budget[]
+  plaidItems   PlaidItem[]
+}
+
+model PlaidItem {
+  id          String   @id @default(cuid())
+  userId      String
+  accessToken String
+  itemId      String   @unique
+  cursor      String?
+  createdAt   DateTime @default(now())
+
+  user     User          @relation(fields: [userId], references: [id])
+  accounts BankAccount[]
+}
+
+model BankAccount {
+  id             String   @id @default(cuid())
+  userId         String
+  plaidItemId    String?
+  plaidAccountId String?  @unique
+  name           String
+  officialName   String?
+  type           String
+  subtype        String?
+  currentBalance Float    @default(0)
+  currency       String   @default("USD")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id])
+  plaidItem    PlaidItem?    @relation(fields: [plaidItemId], references: [id])
+  transactions Transaction[]
+}
+
+model Transaction {
+  id            String   @id @default(cuid())
+  accountId     String
+  plaidTxId     String?  @unique
+  amount        Float
+  description   String
+  category      String   @default("Otros")
+  subcategory   String?
+  date          DateTime
+  pending       Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  account BankAccount @relation(fields: [accountId], references: [id])
+}
+
+model Budget {
+  id        String   @id @default(cuid())
+  userId    String
+  category  String
+  amount    Float
+  period    String   @default("monthly")
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, category, period])
+}
