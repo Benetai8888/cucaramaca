@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sudoku · María José</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#f5f2ec;
+  --surface:#ffffff;
+  --surface2:#f0ece4;
+  --surface3:#e8e2d8;
+  --accent:#8b6914;
+  --accent2:#a07820;
+  --rose:#a03050;
+  --teal:#1a7a60;
+  --blue:#1a5080;
+  --text:#1a1612;
+  --text-dim:#3a3020;
+  --text-muted:#7a6e5a;
+  --fixed-color:#1a1612;
+  --user-color:#6b4e0a;
+  --err-color:#a02020;
+  --border:#c8bfa8;
+  --border-gold:rgba(139,105,20,.5);
+  --cell-sel:rgba(139,105,20,.13);
+  --cell-hl:rgba(139,105,20,.05);
+  --cell-same:rgba(139,105,20,.10);
+  --cell-err:rgba(180,40,40,.10);
+  --cell-correct:rgba(26,122,96,.08);
+}
+html,body{height:100%;overflow-x:hidden;}
+body{
+  font-family:Arial,Helvetica,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  position:relative;
+}
+
+body::before{
+content:’’;
+position:fixed;inset:0;
+background:
+radial-gradient(ellipse 70% 50% at 10% 0%,rgba(180,150,80,.07) 0%,transparent 60%),
+radial-gradient(ellipse 50% 40% at 90% 100%,rgba(180,80,100,.05) 0%,transparent 60%);
+pointer-events:none;z-index:0;
+}
+
+.container{
+position:relative;z-index:1;
+width:100%;max-width:520px;
+padding:28px 18px 40px;
+}
+
+/* ── HEADER ── */
+header{
+text-align:center;margin-bottom:28px;
+animation:fadeDown .9s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-24px)}to{opacity:1;transform:translateY(0)}}
+
+.eyebrow{
+font-family:Arial,Helvetica,sans-serif;
+font-style:italic;font-size:12px;font-weight:400;
+letter-spacing:.22em;color:var(–text-muted);
+text-transform:uppercase;margin-bottom:10px;
+}
+.title-wrap{position:relative;display:inline-block;}
+.main-title{
+font-family:Arial,Helvetica,sans-serif;
+font-size:clamp(44px,11vw,64px);
+font-weight:900;line-height:.95;
+color:var(–text);letter-spacing:-.02em;
+display:block;
+}
+.title-accent{
+position:absolute;bottom:-4px;left:0;right:0;
+height:2px;
+background:linear-gradient(90deg,transparent,var(–accent),transparent);
+}
+.subtitle{
+font-family:Arial,Helvetica,sans-serif;
+font-style:italic;font-size:15px;font-weight:400;
+color:var(–text-muted);letter-spacing:.06em;margin-top:12px;display:block;
+}
+.love-tag{
+display:inline-block;margin-top:10px;
+font-family:Arial,Helvetica,sans-serif;
+font-style:italic;font-size:13px;
+color:var(–rose);opacity:.85;letter-spacing:.05em;
+}
+
+/* ── DIFFICULTY ── */
+.diff-row{
+display:flex;gap:6px;justify-content:center;margin-bottom:18px;
+animation:fadeDown .9s .1s cubic-bezier(.16,1,.3,1) both;
+}
+.diff-btn{
+padding:7px 20px;border:1px solid var(–border);border-radius:2px;
+background:transparent;
+font-family:Arial,Helvetica,sans-serif;font-size:10px;font-weight:700;
+letter-spacing:.12em;text-transform:uppercase;
+color:var(–text-muted);cursor:pointer;
+transition:all .25s;
+}
+.diff-btn:hover{border-color:var(–border-gold);color:var(–accent);}
+.diff-btn.active{
+border-color:var(–accent);color:#fff;
+background:var(–accent);
+}
+
+/* ── CONTROLS ── */
+.controls{
+display:flex;gap:8px;justify-content:center;margin-bottom:14px;
+flex-wrap:wrap;
+animation:fadeDown .9s .15s cubic-bezier(.16,1,.3,1) both;
+}
+.btn{
+padding:8px 16px;border:1px solid;border-radius:2px;
+font-family:Arial,Helvetica,sans-serif;font-size:10px;font-weight:700;
+letter-spacing:.1em;text-transform:uppercase;
+cursor:pointer;transition:all .2s;
+display:flex;align-items:center;gap:5px;background:transparent;
+}
+.btn:hover{transform:translateY(-1px);}
+.btn:active{transform:translateY(0);}
+.btn-new{border-color:rgba(139,105,20,.5);color:var(–accent);}
+.btn-new:hover{background:rgba(139,105,20,.08);}
+.btn-hint{border-color:rgba(26,122,96,.5);color:var(–teal);}
+.btn-hint:hover{background:rgba(26,122,96,.08);}
+.btn-check{border-color:rgba(26,80,128,.5);color:var(–blue);}
+.btn-check:hover{background:rgba(26,80,128,.08);}
+.btn-erase{border-color:rgba(160,48,80,.5);color:var(–rose);}
+.btn-erase:hover{background:rgba(160,48,80,.08);}
+
+/* ── RESTORE BANNER ── */
+.restore-banner{
+display:none;
+background:rgba(139,105,20,.08);
+border:1px solid rgba(139,105,20,.25);
+border-radius:2px;padding:8px 16px;margin-bottom:12px;
+font-size:10px;letter-spacing:.15em;
+color:var(–accent);text-align:center;text-transform:uppercase;
+font-family:Arial,Helvetica,sans-serif;
+animation:fadeDown .5s ease both;
+}
+.restore-banner.show{display:block;}
+
+/* ── INFO BAR ── */
+.game-info{
+display:flex;justify-content:space-between;align-items:center;
+margin-bottom:14px;padding:12px 20px;
+background:var(–surface);
+border:1px solid var(–border);border-radius:4px;
+font-family:Arial,Helvetica,sans-serif;font-size:12px;
+font-weight:700;letter-spacing:.08em;
+animation:fadeDown .9s .2s cubic-bezier(.16,1,.3,1) both;
+box-shadow:0 1px 4px rgba(0,0,0,.06);
+}
+.timer-val{color:var(–accent);}
+.mistakes-val{color:var(–rose);}
+.hints-val{color:var(–teal);}
+.info-label{font-size:9px;letter-spacing:.15em;color:var(–text-muted);display:block;text-align:center;margin-bottom:2px;font-weight:400;}
+
+/* ── BOARD ── */
+.board-wrapper{
+display:flex;justify-content:center;margin-bottom:14px;
+animation:fadeDown .9s .25s cubic-bezier(.16,1,.3,1) both;
+}
+.board{
+display:grid;grid-template-columns:repeat(9,1fr);
+gap:0;
+border:2px solid rgba(100,80,20,.6);
+border-radius:4px;overflow:hidden;
+width:100%;max-width:480px;aspect-ratio:1;
+background:var(–border);
+box-shadow:
+0 0 0 1px rgba(139,105,20,.15),
+0 4px 20px rgba(0,0,0,.1);
+}
+.cell{
+background:var(–surface);
+display:flex;align-items:center;justify-content:center;
+font-family:Arial,Helvetica,sans-serif;
+font-size:clamp(14px,3.5vw,22px);
+font-weight:900;
+cursor:pointer;transition:background .12s;
+position:relative;user-select:none;
+outline:none;
+border-right:1px solid var(–border);
+border-bottom:1px solid var(–border);
+color:var(–text-muted);
+}
+.cell:nth-child(9n){border-right:none;}
+.cell:nth-last-child(-n+9){border-bottom:none;}
+.cell.fixed{color:var(–fixed-color);font-weight:900;background:var(–surface2);}
+.cell.user-input{color:var(–user-color);}
+.cell.selected{background:var(–cell-sel)!important;z-index:2;}
+.cell.selected::after{content:’’;position:absolute;inset:0;border:2px solid rgba(139,105,20,.7);pointer-events:none;}
+.cell.highlighted{background:var(–cell-hl);}
+.cell.same-number{background:var(–cell-same);}
+.cell.error{background:var(–cell-err)!important;color:var(–err-color)!important;animation:shake .4s ease;}
+.cell.correct-flash{animation:correctPop .4s ease;}
+
+/* Box borders */
+.cell.box-r{border-right:2px solid rgba(100,80,20,.5)!important;}
+.cell.box-b{border-bottom:2px solid rgba(100,80,20,.5)!important;}
+
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@keyframes correctPop{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+
+/* Notes grid */
+.cell .notes{
+display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);
+width:100%;height:100%;position:absolute;padding:1px;
+}
+.cell .notes span{
+font-family:Arial,Helvetica,sans-serif;
+font-size:clamp(5px,1vw,8px);font-weight:700;
+color:var(–text-muted);
+display:flex;align-items:center;justify-content:center;
+transition:color .2s;
+}
+.cell .notes span.active{color:var(–teal);}
+
+/* Generating state */
+.generating{
+display:flex;align-items:center;justify-content:center;
+width:100%;height:100%;
+font-family:Arial,Helvetica,sans-serif;
+font-style:italic;font-size:16px;
+color:var(–text-muted);letter-spacing:.08em;
+gap:10px;
+}
+.generating::after{
+content:’’;display:inline-block;
+width:6px;height:6px;border-radius:50%;
+background:var(–accent);
+animation:pulse 1s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.6)}}
+
+/* ── ACTION BUTTONS ── */
+.actions{
+display:flex;gap:8px;justify-content:center;
+max-width:480px;margin:0 auto 12px;
+}
+.action-btn{
+flex:1;padding:10px 8px;
+border:1px solid var(–border);border-radius:2px;
+background:var(–surface);
+font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;
+letter-spacing:.12em;text-transform:uppercase;
+color:var(–text-muted);cursor:pointer;transition:all .2s;text-align:center;
+box-shadow:0 1px 3px rgba(0,0,0,.05);
+}
+.action-btn:hover{border-color:var(–border-gold);color:var(–accent);}
+.action-btn.active{border-color:rgba(26,122,96,.5);color:var(–teal);background:rgba(26,122,96,.05);}
+.action-btn .icon{font-size:15px;display:block;margin-bottom:3px;}
+
+/* ── NUMPAD ── */
+.numpad{
+display:grid;grid-template-columns:repeat(9,1fr);
+gap:5px;max-width:480px;margin:0 auto 20px;
+}
+.num-btn{
+aspect-ratio:1;
+border:1px solid var(–border);border-radius:3px;
+background:var(–surface);
+font-family:Arial,Helvetica,sans-serif;
+font-size:clamp(14px,3.2vw,20px);font-weight:900;
+color:var(–text);cursor:pointer;transition:all .15s;
+position:relative;
+box-shadow:0 1px 4px rgba(0,0,0,.08);
+}
+.num-btn:hover{
+border-color:rgba(139,105,20,.6);
+background:rgba(139,105,20,.07);
+transform:translateY(-2px);
+color:var(–accent);
+}
+.num-btn:active{transform:translateY(0);}
+.num-btn.completed{opacity:.15;pointer-events:none;}
+.num-btn .rem{
+position:absolute;top:2px;right:3px;
+font-family:Arial,Helvetica,sans-serif;font-size:7px;
+color:var(–text-muted);font-weight:400;
+}
+
+footer{
+text-align:center;padding:16px;
+font-family:Arial,Helvetica,sans-serif;
+font-style:italic;font-size:14px;
+color:var(–text-muted);letter-spacing:.03em;
+}
+footer em{color:var(–rose);font-style:normal;font-weight:700;}
+
+/* ── WIN OVERLAY ── */
+.win-overlay{
+position:fixed;inset:0;
+background:rgba(245,242,236,.92);
+backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+z-index:200;display:flex;align-items:center;justify-content:center;
+padding:16px;
+opacity:0;visibility:hidden;
+transition:opacity .3s ease, visibility .3s ease;
+}
+.win-overlay.show{opacity:1;visibility:visible;}
+.win-card{
+background:var(–surface);
+border:1px solid rgba(139,105,20,.3);
+border-radius:8px;
+padding:40px 32px;text-align:center;
+max-width:440px;width:100%;
+animation:winPop .6s cubic-bezier(.34,1.56,.64,1) both;
+position:relative;overflow:hidden;
+box-shadow:0 12px 48px rgba(0,0,0,.12),0 0 0 1px rgba(139,105,20,.1);
+}
+@keyframes winPop{from{transform:scale(.82) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.win-overlay .win-card{animation:none;}
+.win-overlay.show .win-card{animation:winPop .5s .15s cubic-bezier(.34,1.56,.64,1) both;}
+.win-card::before{
+content:’’;position:absolute;top:0;left:0;right:0;height:3px;
+background:linear-gradient(90deg,transparent,var(–accent),var(–rose),var(–teal),var(–accent),transparent);
+}
+
+.win-eyebrow{
+font-family:Arial,Helvetica,sans-serif;font-size:9px;
+letter-spacing:.3em;text-transform:uppercase;
+color:var(–text-muted);margin-bottom:14px;font-weight:700;
+}
+.win-title{
+font-family:Arial,Helvetica,sans-serif;
+font-size:48px;font-weight:900;
+color:var(–accent);line-height:.9;margin-bottom:4px;
+}
+.win-name{
+font-family:Arial,Helvetica,sans-serif;
+font-style:italic;font-size:20px;
+color:var(–text-dim);margin-bottom:28px;font-weight:400;
+}
+
+.win-quote-block{
+margin:0 0 22px;padding:24px 22px 18px;
+border:1px solid rgba(139,105,20,.15);border-radius:4px;
+background:rgba(139,105,20,.03);
+position:relative;
+}
+.win-open-quote{
+position:absolute;top:-22px;left:50%;transform:translateX(-50%);
+font-family:Arial,Helvetica,sans-serif;font-size:56px;font-weight:900;
+color:var(–accent);line-height:1;
+background:var(–surface);padding:0 12px;
+}
+.win-quote{
+font-family:Arial,Helvetica,sans-serif;
+font-style:italic;font-size:15px;font-weight:400;
+line-height:1.65;color:var(–text);margin-bottom:12px;
+}
+.win-quote-src{
+font-family:Arial,Helvetica,sans-serif;font-size:9px;
+letter-spacing:.12em;text-transform:uppercase;
+color:var(–text-muted);font-weight:700;
+}
+
+.win-papa{
+font-family:Arial,Helvetica,sans-serif;
+font-style:italic;font-size:15px;font-weight:400;
+line-height:1.75;color:var(–rose);
+margin-bottom:24px;padding:16px 18px;
+border-radius:4px;
+background:rgba(160,48,80,.05);
+border:1px solid rgba(160,48,80,.15);
+}
+
+.win-stats{
+display:flex;justify-content:center;gap:36px;
+margin-bottom:24px;
+}
+.win-stat{text-align:center;}
+.win-stat-val{
+font-family:Arial,Helvetica,sans-serif;
+font-size:32px;font-weight:900;
+color:var(–accent);display:block;line-height:1;
+}
+.win-stat-lbl{
+font-family:Arial,Helvetica,sans-serif;font-size:9px;
+letter-spacing:.2em;text-transform:uppercase;
+color:var(–text-muted);display:block;margin-top:4px;font-weight:700;
+}
+.win-star-row{margin-bottom:20px;font-size:20px;letter-spacing:4px;}
+
+.win-btn{
+padding:13px 36px;
+border:1px solid var(–accent);border-radius:2px;
+background:transparent;color:var(–accent);
+font-family:Arial,Helvetica,sans-serif;font-size:10px;font-weight:700;
+letter-spacing:.2em;text-transform:uppercase;
+cursor:pointer;transition:all .25s;
+}
+.win-btn:hover{background:var(–accent);color:#fff;transform:translateY(-1px);}
+
+/* ── CANVAS ── */
+#confetti{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:201;}
+
+/* ── STREAK TOAST ── */
+.toast{
+position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(80px);
+background:var(–surface);border:1px solid rgba(139,105,20,.3);
+border-radius:4px;padding:10px 22px;
+font-family:Arial,Helvetica,sans-serif;font-style:italic;font-size:14px;
+color:var(–accent);text-align:center;
+z-index:150;transition:transform .4s cubic-bezier(.16,1,.3,1),opacity .4s;
+opacity:0;white-space:nowrap;
+box-shadow:0 4px 20px rgba(0,0,0,.12);
+}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+
+@media(max-width:380px){
+.main-title{font-size:36px;}
+.win-card{padding:28px 18px;}
+.win-quote{font-size:13px;}
+.win-title{font-size:34px;}
+.btn{padding:7px 10px;font-size:9px;}
+}
+</style>
+
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div class="toast" id="toast"></div>
+
+<div class="container">
+  <header>
+    <div class="eyebrow">de Papá · con todo su amor</div>
+    <div class="title-wrap">
+      <span class="main-title">María José</span>
+      <div class="title-accent"></div>
+    </div>
+    <span class="subtitle">Sudoku · Edición especial</span>
+    <div class="love-tag">♡ hecho para ti · siempre ♡</div>
+  </header>
+
+  <div class="diff-row">
+    <button class="diff-btn active" data-diff="easy">Fácil</button>
+    <button class="diff-btn" data-diff="medium">Media</button>
+    <button class="diff-btn" data-diff="hard">Difícil</button>
+    <button class="diff-btn" data-diff="expert">Experta</button>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-new" onclick="newGame()">↺ Nuevo</button>
+    <button class="btn btn-hint" onclick="giveHint()">◈ Pista</button>
+    <button class="btn btn-check" onclick="checkBoard()">✓ Revisar</button>
+    <button class="btn btn-erase" onclick="eraseCell()">⌫ Borrar</button>
+  </div>
+
+  <div class="restore-banner" id="restoreBanner">↩ retomando tu partida anterior…</div>
+
+  <div class="game-info">
+    <div>
+      <span class="info-label">tiempo</span>
+      <span class="timer-val" id="timer">00:00</span>
+    </div>
+    <div>
+      <span class="info-label">errores</span>
+      <span class="mistakes-val" id="mistakes">0 / 4</span>
+    </div>
+    <div>
+      <span class="info-label">pistas</span>
+      <span class="hints-val" id="hintsLeft">3</span>
+    </div>
+    <div>
+      <span class="info-label">racha</span>
+      <span style="color:var(--accent2)" id="streak">—</span>
+    </div>
+  </div>
+
+  <div class="board-wrapper"><div class="board" id="board"></div></div>
+
+  <div class="actions">
+    <button class="action-btn" onclick="undo()"><span class="icon">↩</span>Deshacer</button>
+    <button class="action-btn" id="notesBtn" onclick="toggleNotes()"><span class="icon">✎</span>Notas</button>
+    <button class="action-btn" onclick="autoNote()"><span class="icon">✦</span>Automático</button>
+  </div>
+
+  <div class="numpad" id="numpad"></div>
+
+  <footer>Para mi princesa · <em>Love you more than anything</em></footer>
+</div>
+
+<div class="win-overlay" id="winOverlay">
+  <div class="win-card">
+    <div class="win-eyebrow">nivel completado</div>
+    <div class="win-title">¡Lo lograste!</div>
+    <div class="win-name">María José</div>
+    <div class="win-star-row" id="winStars"></div>
+    <div class="win-quote-block">
+      <span class="win-open-quote">"</span>
+      <div class="win-quote" id="winQuote"></div>
+      <div class="win-quote-src" id="winQuoteSrc"></div>
+    </div>
+    <div class="win-papa" id="winPapaMsg"></div>
+    <div class="win-stats">
+      <div class="win-stat"><span class="win-stat-val" id="winTime">00:00</span><span class="win-stat-lbl">tiempo</span></div>
+      <div class="win-stat"><span class="win-stat-val" id="winMistakes">0</span><span class="win-stat-lbl">errores</span></div>
+      <div class="win-stat"><span class="win-stat-val" id="winHints">0</span><span class="win-stat-lbl">pistas</span></div>
+    </div>
+    <button class="win-btn" onclick="closeWin()">Jugar otra vez →</button>
+  </div>
+</div>
+
+<script>
+const quotes = [
+  {q:"No eres el resultado de lo que te pasó. Eres el resultado de lo que decidiste hacer con ello.",src:"Viktor Frankl · El hombre en busca de sentido"},
+  {q:"La disciplina es elegir entre lo que quieres ahora y lo que más quieres.",src:"Abraham Lincoln"},
+  {q:"Haz lo que es difícil y la vida se vuelve fácil. Haz lo que es fácil y la vida se vuelve difícil.",src:"Les Brown"},
+  {q:"El carácter se revela en los momentos en que nadie está mirando.",src:"John Wooden"},
+  {q:"La mente que se abre a una nueva idea nunca vuelve a su tamaño original.",src:"Albert Einstein"},
+  {q:"El éxito no es final. El fracaso no es fatal. Lo que cuenta es el coraje de continuar.",src:"Winston Churchill"},
+  {q:"Tu nivel de éxito rara vez excede tu desarrollo personal.",src:"Jim Rohn · El arte de la vida excepcional"},
+  {q:"No te rindas cuando las cosas se ponen difíciles. Eso es exactamente cuando más importa seguir.",src:"Michelle Obama · Becoming"},
+  {q:"El secreto de salir adelante es comenzar.",src:"Mark Twain"},
+  {q:"Todo lo que siempre quisiste está del otro lado del miedo.",src:"George Addair"},
+  {q:"El dolor es inevitable. El sufrimiento es opcional.",src:"Haruki Murakami · De qué hablo cuando hablo de correr"},
+  {q:"No te compares con nadie. Compárate con quien eras ayer.",src:"Jordan B. Peterson · 12 Rules for Life"},
+  {q:"Cuida de ti misma como si fueras responsable de alguien que amas.",src:"Jordan B. Peterson · 12 Rules for Life"},
+  {q:"Cada acción que tomas es un voto por el tipo de persona en la que quieres convertirte.",src:"James Clear · Atomic Habits"},
+  {q:"La incomodidad es el precio de entrada a una vida significativa.",src:"Susan David · Emotional Agility"},
+  {q:"No tienes que ser grande para empezar, pero tienes que empezar para ser grande.",src:"Zig Ziglar"},
+  {q:"La fortaleza no viene de ganar. Viene de las luchas que decidiste no abandonar.",src:"Arnold Schwarzenegger"},
+  {q:"Conócete a ti misma profundamente y te volverás invencible.",src:"Sun Tzu · adaptado"},
+  {q:"Lo que siembras en silencio florece en público.",src:"Anónimo"},
+  {q:"La suerte favorece a la mente preparada.",src:"Louis Pasteur"},
+  {q:"El verdadero viaje de descubrimiento no consiste en buscar nuevos paisajes, sino en tener nuevos ojos.",src:"Marcel Proust"},
+  {q:"Nada en la vida debe temerse, solo comprenderse.",src:"Marie Curie"},
+  {q:"La vida no se mide por los momentos que respiras, sino por aquellos que te quitan el aliento.",src:"Maya Angelou"},
+  {q:"Nunca confundas movimiento con progreso.",src:"Denzel Washington"},
+];
+
+const papaMsgs = [
+  "Papá te ve crecer y se le hincha el corazón de orgullo. No hay palabras suficientes. Te amo, mi niña. ♡",
+  "Cuando resuelves problemas así, me recuerdas que eres imparable. Love you more than words. ♡",
+  "Eres más fuerte de lo que crees, más brillante de lo que imaginas. Tu papá siempre lo supo. ♡",
+  "Cada nivel que completas es un recordatorio de que puedes con todo. I'm so proud of you, princess. ♡",
+  "Ver cómo piensas, cómo no te rindes — eso me hace el papá más afortunado del mundo. ♡",
+  "Tú no solo resuelves sudokus. Resuelves la vida con gracia. Love you to the moon and back. ♡",
+  "Mi princesa. Mi orgullo. Mi todo. Sigue siendo exactamente quien eres. ♡",
+  "No importa dónde estés en el mundo, siempre estás en mi corazón. I love you, María José. ♡",
+  "Proud of you no solo cuando ganas, sino porque nunca dejas de intentarlo. That's everything. ♡",
+  "La niña que más quiero en este mundo acaba de ganar otro round. Love you more than anything. ♡",
+  "Barcelona está esperando a alguien que piensa con tanta claridad. Te mereces todo. ♡",
+  "Cada puzzle resuelto es una pequeña prueba de que el mundo no te puede con nada. Eres mi héroe. ♡",
+  "Papá siempre va a estar orgulloso. Hoy más que nunca. Te amo infinito. ♡",
+];
+
+const SAVE_KEY = 'sudoku_mj_v4';
+const REMOVE = { easy: 32, medium: 42, hard: 52, expert: 58 };
+const MAX_MISTAKES = { easy: 4, medium: 4, hard: 3, expert: 3 };
+
+let board = [], solution = [], fixedCells = new Set();
+let notes = Array.from({length:81}, () => new Set());
+let history = [], difficulty = 'easy';
+let mistakes = 0, hintsUsed = 0, hintsRemaining = 3;
+let timerInterval = null, seconds = 0, gameActive = false;
+let selectedCell = null, notesMode = false;
+let streak = 0;
+let winShown = false;
+
+function saveGame() {
+  if (!gameActive) return;
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      board, solution,
+      notes: notes.map(s => [...s]),
+      fixedCells: [...fixedCells],
+      difficulty, mistakes, hintsRemaining, hintsUsed, seconds, streak
+    }));
+  } catch(e) {}
+}
+function loadGame() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const s = JSON.parse(raw);
+    if (!Array.isArray(s.board) || s.board.length !== 9 ||
+        !Array.isArray(s.solution) || s.solution.length !== 9 ||
+        !Array.isArray(s.notes) || s.notes.length !== 81) {
+      clearSave(); return false;
+    }
+    board = s.board; solution = s.solution;
+    notes = s.notes.map(a => new Set(a));
+    fixedCells = new Set(s.fixedCells);
+    difficulty = s.difficulty || 'easy';
+    mistakes = s.mistakes || 0;
+    hintsRemaining = s.hintsRemaining ?? 3;
+    hintsUsed = s.hintsUsed || 0;
+    seconds = s.seconds || 0;
+    streak = s.streak || 0;
+    document.querySelectorAll('.diff-btn').forEach(b =>
+      b.classList.toggle('active', b.dataset.diff === difficulty));
+    return true;
+  } catch(e) { clearSave(); return false; }
+}
+function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch(e) {} }
+
+function shuffle(a) {
+  const b = [...a];
+  for (let i = b.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i+1));
+    [b[i], b[j]] = [b[j], b[i]];
+  }
+  return b;
+}
+
+function isValid(g, r, c, n) {
+  for (let i = 0; i < 9; i++) {
+    if (g[r][i] === n || g[i][c] === n) return false;
+  }
+  const br = Math.floor(r/3)*3, bc = Math.floor(c/3)*3;
+  for (let a = br; a < br+3; a++)
+    for (let b = bc; b < bc+3; b++)
+      if (g[a][b] === n) return false;
+  return true;
+}
+
+function generateSolution() {
+  const g = Array.from({length:9}, () => Array(9).fill(0));
+  function fill(pos) {
+    if (pos === 81) return true;
+    const r = Math.floor(pos/9), c = pos%9;
+    for (const n of shuffle([1,2,3,4,5,6,7,8,9])) {
+      if (isValid(g, r, c, n)) {
+        g[r][c] = n;
+        if (fill(pos+1)) return true;
+        g[r][c] = 0;
+      }
+    }
+    return false;
+  }
+  fill(0);
+  return g;
+}
+
+function countSolutions(g, limit) {
+  let count = 0;
+  function solve(pos) {
+    if (count >= limit) return;
+    if (pos === 81) { count++; return; }
+    const r = Math.floor(pos/9), c = pos%9;
+    if (g[r][c] !== 0) { solve(pos+1); return; }
+    for (let n = 1; n <= 9; n++) {
+      if (count >= limit) return;
+      if (isValid(g, r, c, n)) { g[r][c] = n; solve(pos+1); g[r][c] = 0; }
+    }
+  }
+  solve(0);
+  return count;
+}
+
+function createPuzzle(sol, removeCount) {
+  const p = sol.map(row => [...row]);
+  let removed = 0;
+  const positions = shuffle([...Array(81).keys()]);
+  for (const pos of positions) {
+    if (removed >= removeCount) break;
+    const r = Math.floor(pos/9), c = pos%9;
+    const backup = p[r][c];
+    p[r][c] = 0;
+    const test = p.map(row => [...row]);
+    if (countSolutions(test, 2) !== 1) {
+      p[r][c] = backup;
+    } else {
+      removed++;
+    }
+  }
+  return p;
+}
+
+function getPossible(r, c) {
+  if (board[r][c] !== 0) return new Set();
+  const used = new Set();
+  for (let i = 0; i < 9; i++) {
+    if (board[r][i]) used.add(board[r][i]);
+    if (board[i][c]) used.add(board[i][c]);
+  }
+  const br = Math.floor(r/3)*3, bc = Math.floor(c/3)*3;
+  for (let a = br; a < br+3; a++)
+    for (let b = bc; b < bc+3; b++)
+      if (board[a][b]) used.add(board[a][b]);
+  const s = new Set();
+  for (let n = 1; n <= 9; n++) if (!used.has(n)) s.add(n);
+  return s;
+}
+
+function autoNote() {
+  if (!gameActive) return;
+  const prevNotes = notes.map(s => new Set(s));
+  history.push({type:'autoNote', prevNotes});
+  for (let r = 0; r < 9; r++)
+    for (let c = 0; c < 9; c++)
+      if (board[r][c] === 0) notes[r*9+c] = getPossible(r, c);
+  notesMode = true;
+  document.getElementById('notesBtn').classList.add('active');
+  renderBoard();
+  showToast('Notas calculadas ✦');
+}
+
+function newGame() {
+  clearSave();
+  fixedCells = new Set();
+  winShown = false;
+  const boardEl = document.getElementById('board');
+  boardEl.innerHTML = '<div class="generating">generando…</div>';
+  setTimeout(() => {
+    solution = generateSolution();
+    board = createPuzzle(solution, REMOVE[difficulty]);
+    notes = Array.from({length:81}, () => new Set());
+    history = []; selectedCell = null; notesMode = false;
+    mistakes = 0; hintsRemaining = 3; hintsUsed = 0; seconds = 0;
+    gameActive = true;
+    document.getElementById('notesBtn').classList.remove('active');
+    for (let r = 0; r < 9; r++)
+      for (let c = 0; c < 9; c++)
+        if (board[r][c] !== 0) fixedCells.add(r*9+c);
+    updateInfo();
+    startTimer();
+    renderBoard();
+    updateNumpad();
+  }, 40);
+}
+
+function renderBoard() {
+  const el = document.getElementById('board');
+  el.innerHTML = '';
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      const idx = r*9+c;
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.idx = idx;
+      if (c === 2 || c === 5) cell.classList.add('box-r');
+      if (r === 2 || r === 5) cell.classList.add('box-b');
+      const val = board[r][c];
+      if (val !== 0) {
+        cell.textContent = val;
+        cell.classList.add(fixedCells.has(idx) ? 'fixed' : 'user-input');
+      } else if (notes[idx].size > 0) {
+        const nd = document.createElement('div');
+        nd.className = 'notes';
+        for (let n = 1; n <= 9; n++) {
+          const sp = document.createElement('span');
+          sp.textContent = notes[idx].has(n) ? n : '';
+          if (notes[idx].has(n)) sp.classList.add('active');
+          nd.appendChild(sp);
+        }
+        cell.appendChild(nd);
+      }
+      if (selectedCell !== null) {
+        const sr = Math.floor(selectedCell/9), sc = selectedCell%9;
+        const sameBox = Math.floor(r/3) === Math.floor(sr/3) && Math.floor(c/3) === Math.floor(sc/3);
+        if ((r === sr || c === sc || sameBox) && idx !== selectedCell)
+          cell.classList.add('highlighted');
+        if (idx === selectedCell) cell.classList.add('selected');
+        const sv = board[sr][sc];
+        if (sv !== 0 && val === sv && idx !== selectedCell)
+          cell.classList.add('same-number');
+      }
+      cell.addEventListener('click', () => selectCell(idx));
+      el.appendChild(cell);
+    }
+  }
+}
+
+function selectCell(idx) {
+  if (!gameActive) return;
+  selectedCell = idx;
+  renderBoard();
+}
+
+function placeNumber(num) {
+  if (!gameActive || selectedCell === null) return;
+  const r = Math.floor(selectedCell/9), c = selectedCell%9;
+  if (fixedCells.has(selectedCell)) return;
+  if (notesMode) {
+    history.push({idx:selectedCell, type:'note', prev: new Set(notes[selectedCell])});
+    notes[selectedCell].has(num) ? notes[selectedCell].delete(num) : notes[selectedCell].add(num);
+    renderBoard(); saveGame(); return;
+  }
+  history.push({idx:selectedCell, type:'value', prev:board[r][c], prevNotes: new Set(notes[selectedCell])});
+  notes[selectedCell].clear();
+  if (num === solution[r][c]) {
+    board[r][c] = num;
+    renderBoard();
+    const cellEl = document.querySelector('[data-idx="'+selectedCell+'"]');
+    if (cellEl) cellEl.classList.add('correct-flash');
+    removeRelatedNotes(r, c, num);
+    updateNumpad();
+    saveGame();
+    checkWin();
+  } else {
+    mistakes++;
+    updateInfo();
+    renderBoard();
+    const cellEl = document.querySelector('[data-idx="'+selectedCell+'"]');
+    if (cellEl) {
+      cellEl.classList.add('error');
+      setTimeout(() => { if (cellEl) cellEl.classList.remove('error'); }, 1200);
+    }
+    history.pop();
+    const maxM = MAX_MISTAKES[difficulty];
+    if (mistakes >= maxM) {
+      gameActive = false; clearSave(); clearInterval(timerInterval);
+      setTimeout(() => {
+        showToast('No te rindas, María José. Papá cree en ti. ♡');
+        setTimeout(() => newGame(), 2500);
+      }, 1000);
+    }
+  }
+}
+
+function removeRelatedNotes(row, col, num) {
+  for (let i = 0; i < 9; i++) {
+    notes[row*9+i].delete(num);
+    notes[i*9+col].delete(num);
+  }
+  const br = Math.floor(row/3)*3, bc = Math.floor(col/3)*3;
+  for (let r = br; r < br+3; r++)
+    for (let c = bc; c < bc+3; c++)
+      notes[r*9+c].delete(num);
+}
+
+function eraseCell() {
+  if (!gameActive || selectedCell === null) return;
+  const r = Math.floor(selectedCell/9), c = selectedCell%9;
+  if (fixedCells.has(selectedCell)) return;
+  if (notes[selectedCell].size > 0) {
+    history.push({idx:selectedCell, type:'note', prev: new Set(notes[selectedCell])});
+    notes[selectedCell].clear();
+  } else if (board[r][c] !== 0) {
+    history.push({idx:selectedCell, type:'value', prev:board[r][c], prevNotes: new Set()});
+    board[r][c] = 0;
+  }
+  renderBoard(); saveGame();
+}
+
+function undo() {
+  if (!gameActive || history.length === 0) return;
+  const a = history.pop();
+  if (a.type === 'autoNote') {
+    notes = a.prevNotes;
+  } else {
+    const r = Math.floor(a.idx/9), c = a.idx%9;
+    if (a.type === 'value') { board[r][c] = a.prev; notes[a.idx] = a.prevNotes; }
+    else { notes[a.idx] = a.prev; }
+  }
+  renderBoard(); updateNumpad(); saveGame();
+}
+
+function toggleNotes() {
+  notesMode = !notesMode;
+  document.getElementById('notesBtn').classList.toggle('active', notesMode);
+}
+
+function giveHint() {
+  if (!gameActive || hintsRemaining <= 0) { showToast('Sin pistas disponibles'); return; }
+  const empty = [];
+  for (let r = 0; r < 9; r++)
+    for (let c = 0; c < 9; c++)
+      if (board[r][c] === 0) empty.push(r*9+c);
+  if (!empty.length) return;
+  let best = null, bestCount = 10;
+  for (const idx of empty) {
+    const r = Math.floor(idx/9), c = idx%9;
+    const count = getPossible(r,c).size;
+    if (count < bestCount) { bestCount = count; best = idx; }
+  }
+  const idx = best ?? empty[Math.floor(Math.random()*empty.length)];
+  const r = Math.floor(idx/9), c = idx%9;
+  hintsRemaining--;
+  hintsUsed++;
+  updateInfo();
+  board[r][c] = solution[r][c];
+  selectedCell = idx;
+  notes[idx].clear();
+  removeRelatedNotes(r, c, solution[r][c]);
+  renderBoard(); updateNumpad(); saveGame();
+  const cellEl = document.querySelector('[data-idx="'+idx+'"]');
+  if (cellEl) cellEl.classList.add('correct-flash');
+  checkWin();
+}
+
+function checkBoard() {
+  if (!gameActive) return;
+  let errors = 0;
+  for (let r = 0; r < 9; r++)
+    for (let c = 0; c < 9; c++)
+      if (board[r][c] !== 0 && board[r][c] !== solution[r][c]) {
+        const el = document.querySelector('[data-idx="'+(r*9+c)+'"]');
+        if (el) { el.classList.add('error'); setTimeout(() => el.classList.remove('error'), 1200); }
+        errors++;
+      }
+  if (errors === 0) showToast('Sin errores hasta ahora ✓');
+  else showToast(errors + ' celda' + (errors > 1 ? 's' : '') + ' con error');
+}
+
+function checkWin() {
+  if (winShown) return;
+  for (let r = 0; r < 9; r++)
+    for (let c = 0; c < 9; c++)
+      if (board[r][c] !== solution[r][c]) return;
+  winShown = true;
+  gameActive = false;
+  clearSave();
+  clearInterval(timerInterval);
+  streak++;
+  try { localStorage.setItem('mj_streak', streak); } catch(e) {}
+  setTimeout(() => { showWin(); launchConfetti(); }, 600);
+}
+
+function updateInfo() {
+  const maxM = MAX_MISTAKES[difficulty];
+  document.getElementById('timer').textContent = formatTime(seconds);
+  document.getElementById('mistakes').textContent = mistakes + ' / ' + maxM;
+  document.getElementById('hintsLeft').textContent = hintsRemaining;
+  document.getElementById('streak').textContent = streak > 0 ? streak + ' 🔥' : '—';
+}
+function formatTime(s) {
+  return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
+}
+function startTimer() {
+  clearInterval(timerInterval);
+  updateInfo();
+  timerInterval = setInterval(() => { seconds++; document.getElementById('timer').textContent = formatTime(seconds); }, 1000);
+}
+
+function updateNumpad() {
+  const counts = Array(10).fill(0);
+  for (let r = 0; r < 9; r++)
+    for (let c = 0; c < 9; c++)
+      if (board[r][c] !== 0) counts[board[r][c]]++;
+  const np = document.getElementById('numpad');
+  np.innerHTML = '';
+  for (let n = 1; n <= 9; n++) {
+    const btn = document.createElement('button');
+    btn.className = 'num-btn';
+    if (counts[n] >= 9) btn.classList.add('completed');
+    btn.textContent = n;
+    const rem = 9 - counts[n];
+    if (rem < 9 && rem > 0) {
+      const sp = document.createElement('span');
+      sp.className = 'rem'; sp.textContent = rem;
+      btn.appendChild(sp);
+    }
+    btn.addEventListener('click', () => placeNumber(n));
+    np.appendChild(btn);
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+function showWin() {
+  const q = quotes[Math.floor(Math.random()*quotes.length)];
+  const p = papaMsgs[Math.floor(Math.random()*papaMsgs.length)];
+  const stars = Math.max(1, 3 - Math.floor(mistakes/2) - Math.floor(hintsUsed/2));
+  document.getElementById('winStars').textContent = '★'.repeat(stars) + '☆'.repeat(3-stars);
+  document.getElementById('winQuote').textContent = q.q;
+  document.getElementById('winQuoteSrc').textContent = '— ' + q.src;
+  document.getElementById('winPapaMsg').textContent = p;
+  document.getElementById('winTime').textContent = formatTime(seconds);
+  document.getElementById('winMistakes').textContent = mistakes;
+  document.getElementById('winHints').textContent = hintsUsed;
+  document.getElementById('winOverlay').classList.add('show');
+}
+
+function closeWin() {
+  document.getElementById('winOverlay').classList.remove('show');
+  newGame();
+}
+
+function launchConfetti() {
+  const canvas = document.getElementById('confetti');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const cols = ['#8b6914','#a07820','#a03050','#1a7a60','#1a5080','#3a3020'];
+  const pieces = [];
+  for (let i = 0; i < 160; i++) pieces.push({
+    x: Math.random()*canvas.width,
+    y: -30 - Math.random()*canvas.height*0.5,
+    w: Math.random()*9+4, h: Math.random()*5+2,
+    color: cols[Math.floor(Math.random()*cols.length)],
+    vx: (Math.random()-.5)*3, vy: Math.random()*3+1.5,
+    rot: Math.random()*360, vr: (Math.random()-.5)*8, op: 1
+  });
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    frame++;
+    for (const p of pieces) {
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.vy += .025;
+      if (frame > 130) p.op -= .007;
+      ctx.save();
+      ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180);
+      ctx.globalAlpha = Math.max(0,p.op);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+      ctx.restore();
+    }
+    if (frame < 240) requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  draw();
+}
+
+document.addEventListener('keydown', e => {
+  if (!gameActive) return;
+  const n = parseInt(e.key);
+  if (n >= 1 && n <= 9) { placeNumber(n); return; }
+  if (e.key === 'Backspace' || e.key === 'Delete') { eraseCell(); return; }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z') { undo(); return; }
+  if (e.key === 'n' || e.key === 'N') { toggleNotes(); return; }
+  if (selectedCell !== null) {
+    const r = Math.floor(selectedCell/9), c = selectedCell%9;
+    const moves = {ArrowUp:[-1,0],ArrowDown:[1,0],ArrowLeft:[0,-1],ArrowRight:[0,1]};
+    if (moves[e.key]) {
+      e.preventDefault();
+      const [dr,dc] = moves[e.key];
+      const nr = r+dr, nc = c+dc;
+      if (nr >= 0 && nr < 9 && nc >= 0 && nc < 9) selectCell(nr*9+nc);
+    }
+  }
+});
+
+document.querySelectorAll('.diff-btn').forEach(btn =>
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    difficulty = btn.dataset.diff;
+    newGame();
+  })
+);
+
+function init() {
+  try { streak = parseInt(localStorage.getItem('mj_streak')) || 0; } catch(e) {}
+  const restored = loadGame();
+  if (restored) {
+    // mj_streak is the authoritative source; override whatever was in the save blob
+    try { streak = parseInt(localStorage.getItem('mj_streak')) || 0; } catch(e) {}
+    history = []; selectedCell = null; notesMode = false; gameActive = true; winShown = false;
+    document.getElementById('notesBtn').classList.remove('active');
+    const banner = document.getElementById('restoreBanner');
+    banner.classList.add('show');
+    setTimeout(() => banner.classList.remove('show'), 3000);
+    updateInfo(); startTimer(); renderBoard(); updateNumpad();
+  } else {
+    newGame();
+  }
+}
+init();
+</script>
+
+</body>
+</html>
