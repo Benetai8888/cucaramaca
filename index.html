@@ -1,1 +1,685 @@
-<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>Sudoku Game</title>\n    <style>\n        body { font-family: Arial, sans-serif; }\n        table { border-collapse: collapse; margin: 20px auto; }\n        td { width: 40px; height: 40px; text-align: center; border: 1px solid #ccc; }\n        input { width: 100%; height: 100%; text-align: center; font-size: 18px; }\n        .highlight { background-color: #f0f0f0; }\n    </style>\n</head>\n<body>\n    <h1 style="text-align:center;">Sudoku Game</h1>\n    <table>\n        <tbody>\n            <!-- Sudoku grid here -->\n            <tr>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n            </tr>\n            <tr>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n            </tr>\n            <tr>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n            </tr>\n            <tr>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n            </tr>\n            <tr>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n            </tr>\n            <tr>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n            </tr>\n            <tr>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n            </tr>\n            <tr>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n                <td><input type="text" maxlength="1"></td>\n            </tr>\n        </tbody>\n    </table>\n    <script>\n        // Sudoku game logic goes here\n        function isValid(board, row, col, num) {\n            for (let x = 0; x < 9; x++) {\n                if (board[row][x] === num || board[x][col] === num) return false;\n                if (board[Math.floor(row / 3) * 3 + Math.floor(x / 3)][Math.floor(col / 3) * 3 + x % 3] === num) return false;\n            }\n            return true;\n        }\n\n        function solveSudoku(board) {\n            for (let row = 0; row < 9; row++) {\n                for (let col = 0; col < 9; col++) {\n                    if (board[row][col] === 0) {\n                        for (let num = 1; num <= 9; num++) {\n                            if (isValid(board, row, col, num)) {\n                                board[row][col] = num;\n                                if (solveSudoku(board)) return true;\n                                board[row][col] = 0;\n                            }\n                        }\n                        return false;\n                    }\n                }\n            }\n            return true;\n        }\n\n        // Initialize and solve the Sudoku game\n        let board = [\n            [5, 3, 0, 0, 7, 0, 0, 0, 0],\n            [6, 0, 0, 1, 9, 5, 0, 0, 0],\n            [0, 9, 8, 0, 0, 0, 0, 6, 0],\n            [8, 0, 0, 0, 6, 0, 0, 0, 3],\n            [4, 0, 0, 8, 0, 3, 0, 0, 1],\n            [7, 0, 0, 0, 2, 0, 0, 0, 6],\n            [0, 6, 0, 0, 0, 0, 2, 8, 0],\n            [0, 0, 0, 4, 1, 9, 0, 0, 5],\n            [0, 0, 0, 0, 8, 0, 0, 7, 9] \n        ];\n        solveSudoku(board);\n    </script>\n</body>\n</html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Conquista - Juego Híbrido de Estrategia</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f0f1a;--surface:#1a1a2e;--surface2:#16213e;--surface3:#0a3d62;
+  --gold:#f5c842;--gold-dim:rgba(245,200,66,.15);--gold-glow:rgba(245,200,66,.3);
+  --purple:#b388ff;--purple-dim:rgba(179,136,255,.15);--purple-glow:rgba(179,136,255,.3);
+  --text:#e8e8f0;--text-dim:#8888a0;--text-muted:#555570;
+  --border:#2a2a4a;--border-light:#3a3a5a;
+  --danger:#ff5252;--success:#69f0ae;--info:#40c4ff;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;align-items:center;justify-content:center;user-select:none}
+
+/* Header */
+.header{text-align:center;margin-bottom:12px}
+.header h1{font-size:1.6rem;font-weight:700;letter-spacing:2px;background:linear-gradient(135deg,var(--gold),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header .subtitle{font-size:.7rem;color:var(--text-muted);letter-spacing:4px;text-transform:uppercase;margin-top:2px}
+
+/* Scoreboard */
+.scoreboard{display:flex;gap:16px;margin-bottom:10px;align-items:center}
+.player-score{display:flex;align-items:center;gap:8px;padding:6px 14px;border-radius:10px;font-size:.85rem;font-weight:600;transition:all .3s}
+.player-score.gold{border:2px solid rgba(245,200,66,.3);background:rgba(245,200,66,.05);color:var(--gold)}
+.player-score.purple{border:2px solid rgba(179,136,255,.3);background:rgba(179,136,255,.05);color:var(--purple)}
+.player-score.active.gold{background:rgba(245,200,66,.15);box-shadow:0 0 20px rgba(245,200,66,.2)}
+.player-score.active.purple{background:rgba(179,136,255,.15);box-shadow:0 0 20px rgba(179,136,255,.2)}
+.player-score .dot{width:10px;height:10px;border-radius:50%}
+.player-score.gold .dot{background:var(--gold)}
+.player-score.purple .dot{background:var(--purple)}
+.score-val{font-size:1.1rem;min-width:20px;text-align:center}
+.vs{color:var(--text-muted);font-size:.7rem;font-weight:400}
+
+/* Board */
+.board-container{position:relative;padding:4px;border-radius:14px;background:linear-gradient(135deg,rgba(245,200,66,.15),rgba(179,136,255,.15));box-shadow:0 0 40px rgba(0,0,0,.5)}
+.board{display:grid;grid-template-columns:repeat(9,1fr);gap:0;background:var(--surface);border-radius:12px;overflow:hidden;position:relative}
+.cell{width:46px;height:46px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;font-size:1.15rem;font-weight:700;transition:background .15s,transform .1s;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+.cell:nth-child(9n){border-right:none}
+.cell:nth-child(n+73){border-bottom:none}
+.cell:nth-child(3n){border-right-color:var(--border-light);border-right-width:2px}
+.cell:nth-child(9n){border-right:none}
+.board .cell:nth-child(n+19):nth-child(-n+27),
+.board .cell:nth-child(n+46):nth-child(-n+54){border-bottom-color:var(--border-light);border-bottom-width:2px}
+.cell:hover:not(.occupied){background:rgba(255,255,255,.04)}
+.cell.highlight{background:rgba(255,255,255,.03)}
+.cell.selected{background:rgba(64,196,255,.1);box-shadow:inset 0 0 0 2px var(--info)}
+.cell.gold-piece{color:var(--gold);text-shadow:0 0 8px rgba(245,200,66,.4)}
+.cell.purple-piece{color:var(--purple);text-shadow:0 0 8px rgba(179,136,255,.4)}
+.cell.captured{animation:capture .4s ease-out}
+.cell.scored{animation:score .5s ease-out}
+.cell.attack-target{box-shadow:inset 0 0 0 2px var(--danger);background:rgba(255,82,82,.08)}
+.cell.invalid-flash{animation:invalidFlash .3s}
+.cell.last-move::after{content:'';position:absolute;inset:2px;border-radius:4px;border:1.5px solid rgba(64,196,255,.3);pointer-events:none}
+
+@keyframes capture{0%{transform:scale(1);opacity:1}50%{transform:scale(1.3);opacity:.5}100%{transform:scale(0);opacity:0}}
+@keyframes score{0%{box-shadow:inset 0 0 0 0 rgba(105,240,174,.5)}50%{box-shadow:inset 0 0 20px 5px rgba(105,240,174,.3)}100%{box-shadow:none}}
+@keyframes invalidFlash{0%,100%{background:transparent}50%{background:rgba(255,82,82,.2)}}
+
+/* Number selector */
+.number-selector{display:flex;gap:4px;margin-top:10px;flex-wrap:wrap;justify-content:center}
+.num-btn{width:38px;height:38px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.num-btn:hover{border-color:var(--info);background:rgba(64,196,255,.08)}
+.num-btn.selected{border-color:var(--info);background:rgba(64,196,255,.15);color:var(--info);box-shadow:0 0 10px rgba(64,196,255,.2)}
+.num-btn.disabled{opacity:.25;pointer-events:none}
+.num-btn.attack-btn{border-color:var(--danger);color:var(--danger);font-size:.65rem;width:auto;padding:0 10px}
+.num-btn.attack-btn:hover{background:rgba(255,82,82,.1)}
+.num-btn.attack-btn.selected{background:rgba(255,82,82,.15);box-shadow:0 0 10px rgba(255,82,82,.2)}
+
+/* Status bar */
+.status{margin-top:8px;font-size:.75rem;color:var(--text-dim);text-align:center;min-height:18px;transition:all .3s}
+.status.gold-turn{color:var(--gold)}
+.status.purple-turn{color:var(--purple)}
+
+/* Controls */
+.controls{display:flex;gap:8px;margin-top:10px}
+.ctrl-btn{padding:6px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-dim);font-size:.75rem;cursor:pointer;transition:all .2s}
+.ctrl-btn:hover{border-color:var(--text-dim);color:var(--text)}
+.ctrl-btn.primary{border-color:var(--info);color:var(--info)}
+.ctrl-btn.primary:hover{background:rgba(64,196,255,.1)}
+
+/* Rules tooltip */
+.rules-panel{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border:1px solid var(--border-light);border-radius:16px;padding:24px;max-width:380px;width:90%;max-height:80vh;overflow-y:auto;z-index:100;box-shadow:0 20px 60px rgba(0,0,0,.6);display:none}
+.rules-panel.show{display:block}
+.rules-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99;display:none}
+.rules-overlay.show{display:block}
+.rules-panel h2{font-size:1.1rem;margin-bottom:12px;background:linear-gradient(135deg,var(--gold),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.rules-panel h3{font-size:.85rem;color:var(--info);margin:10px 0 4px}
+.rules-panel p,.rules-panel li{font-size:.78rem;color:var(--text-dim);line-height:1.5}
+.rules-panel ul{padding-left:16px;margin-bottom:6px}
+.rules-panel .close-rules{position:absolute;top:12px;right:14px;background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer}
+
+/* Winner overlay */
+.winner-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:none;align-items:center;justify-content:center;flex-direction:column}
+.winner-overlay.show{display:flex}
+.winner-overlay h2{font-size:2rem;font-weight:800;margin-bottom:8px}
+.winner-overlay.gold-wins h2{color:var(--gold);text-shadow:0 0 30px rgba(245,200,66,.4)}
+.winner-overlay.purple-wins h2{color:var(--purple);text-shadow:0 0 30px rgba(179,136,255,.4)}
+.winner-overlay.draw h2{background:linear-gradient(135deg,var(--gold),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.winner-overlay p{color:var(--text-dim);font-size:.9rem;margin-bottom:20px}
+.winner-overlay button{padding:10px 30px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--gold),var(--purple));color:var(--bg);font-size:1rem;font-weight:700;cursor:pointer}
+
+/* Responsive */
+@media(max-width:480px){
+  .cell{width:38px;height:38px;font-size:1rem}
+  .header h1{font-size:1.3rem}
+  .num-btn{width:34px;height:34px;font-size:.9rem}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>CONQUISTA</h1>
+  <div class="subtitle">Ajedrez + Go + Sudoku + Tic-Tac-Toe</div>
+</div>
+
+<div class="scoreboard">
+  <div class="player-score gold active" id="scoreGold">
+    <span class="dot"></span>
+    <span>Oro</span>
+    <span class="score-val" id="goldVal">0</span>
+  </div>
+  <span class="vs">VS</span>
+  <div class="player-score purple" id="scorePurple">
+    <span class="dot"></span>
+    <span>Púrpura</span>
+    <span class="score-val" id="purpleVal">0</span>
+  </div>
+</div>
+
+<div class="board-container">
+  <div class="board" id="board"></div>
+</div>
+
+<div class="number-selector" id="numSelector"></div>
+
+<div class="status" id="status">Turno de Oro — Elige un número y colócalo</div>
+
+<div class="controls">
+  <button class="ctrl-btn" onclick="showRules()">Reglas</button>
+  <button class="ctrl-btn" onclick="undoMove()">Deshacer</button>
+  <button class="ctrl-btn" onclick="passTurn()">Pasar</button>
+  <button class="ctrl-btn primary" onclick="resetGame()">Nueva Partida</button>
+</div>
+
+<!-- Rules panel -->
+<div class="rules-overlay" id="rulesOverlay" onclick="hideRules()"></div>
+<div class="rules-panel" id="rulesPanel">
+  <button class="close-rules" onclick="hideRules()">&times;</button>
+  <h2>Reglas de Conquista</h2>
+  <h3>Objetivo</h3>
+  <p>Obtener más puntos que tu oponente cuando no queden movimientos válidos.</p>
+  <h3>Turnos</h3>
+  <p>Dos jugadores (Oro y Púrpura) se alternan. Cada turno puedes <b>colocar</b> una pieza numerada o <b>atacar</b> una pieza enemiga adyacente.</p>
+  <h3>Regla Sudoku</h3>
+  <p>No puedes colocar un número que ya exista en la misma fila, columna o sub-región 3x3.</p>
+  <h3>Regla Go — Captura por cerco</h3>
+  <p>Si al colocar una pieza, un grupo de piezas enemigas queda completamente rodeado (sin casillas vacías adyacentes), esas piezas son capturadas. Cada captura = <b>2 puntos</b>.</p>
+  <h3>Regla Tic-Tac-Toe — Líneas</h3>
+  <p>Si logras 3 piezas tuyas en línea (horizontal, vertical o diagonal) dentro de cualquier sub-región 3x3, ganas <b>3 puntos bonus</b>.</p>
+  <h3>Regla Ajedrez — Ataque</h3>
+  <p>En vez de colocar, puedes elegir "Atacar": selecciona una pieza tuya y luego una pieza enemiga adyacente con un número <b>menor</b>. La pieza enemiga es eliminada. Ataque = <b>1 punto</b>.</p>
+  <h3>Puntuación</h3>
+  <ul>
+    <li>Colocar pieza: <b>1 punto</b></li>
+    <li>Captura Go: <b>2 puntos</b> por pieza capturada</li>
+    <li>Línea Tic-Tac-Toe: <b>3 puntos bonus</b></li>
+    <li>Ataque Ajedrez: <b>1 punto</b></li>
+  </ul>
+  <h3>Fin del juego</h3>
+  <p>El juego termina cuando ambos jugadores pasan consecutivamente o no quedan movimientos. ¡El mayor puntaje gana!</p>
+</div>
+
+<!-- Winner overlay -->
+<div class="winner-overlay" id="winnerOverlay">
+  <h2 id="winnerText"></h2>
+  <p id="winnerScore"></p>
+  <button onclick="resetGame()">Jugar de nuevo</button>
+</div>
+
+<script>
+// ==================== GAME STATE ====================
+const EMPTY = 0;
+const GOLD = 1;
+const PURPLE = 2;
+
+let board = []; // [{value:0, owner:0}]
+let currentPlayer = GOLD;
+let scores = {[GOLD]:0, [PURPLE]:0};
+let selectedNum = null;
+let attackMode = false;
+let attackSource = null;
+let consecutivePasses = 0;
+let moveHistory = [];
+let completedLines = new Set(); // track scored lines to avoid double-counting
+let gameOver = false;
+
+// ==================== INIT ====================
+function initBoard() {
+  board = Array.from({length:81}, () => ({value:0, owner:EMPTY}));
+  currentPlayer = GOLD;
+  scores = {[GOLD]:0, [PURPLE]:0};
+  selectedNum = null;
+  attackMode = false;
+  attackSource = null;
+  consecutivePasses = 0;
+  moveHistory = [];
+  completedLines = new Set();
+  gameOver = false;
+  render();
+}
+
+// ==================== RENDERING ====================
+function render() {
+  renderBoard();
+  renderSelector();
+  renderScores();
+  renderStatus();
+}
+
+function renderBoard() {
+  const boardEl = document.getElementById('board');
+  boardEl.innerHTML = '';
+  for (let i = 0; i < 81; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    const r = Math.floor(i / 9), c = i % 9;
+
+    if (board[i].owner === GOLD) cell.classList.add('gold-piece');
+    else if (board[i].owner === PURPLE) cell.classList.add('purple-piece');
+
+    if (board[i].value > 0) {
+      cell.textContent = board[i].value;
+      cell.classList.add('occupied');
+    }
+
+    // Highlight valid attack targets
+    if (attackMode && attackSource !== null && board[i].owner !== EMPTY && board[i].owner !== currentPlayer) {
+      const sr = Math.floor(attackSource / 9), sc = attackSource % 9;
+      if (Math.abs(sr - r) <= 1 && Math.abs(sc - c) <= 1 && !(sr === r && sc === c)) {
+        const sourceVal = board[attackSource].value;
+        if (sourceVal > board[i].value) {
+          cell.classList.add('attack-target');
+        }
+      }
+    }
+
+    // Highlight selected attack source
+    if (attackMode && attackSource === i) {
+      cell.classList.add('selected');
+    }
+
+    // Last move indicator
+    if (moveHistory.length > 0) {
+      const last = moveHistory[moveHistory.length - 1];
+      if (last.type === 'place' && last.index === i) cell.classList.add('last-move');
+    }
+
+    cell.addEventListener('click', () => onCellClick(i));
+    boardEl.appendChild(cell);
+  }
+}
+
+function renderSelector() {
+  const sel = document.getElementById('numSelector');
+  sel.innerHTML = '';
+  for (let n = 1; n <= 9; n++) {
+    const btn = document.createElement('button');
+    btn.className = 'num-btn';
+    btn.textContent = n;
+    if (selectedNum === n && !attackMode) btn.classList.add('selected');
+    if (!attackMode && !hasValidPlacement(n)) btn.classList.add('disabled');
+    btn.addEventListener('click', () => {
+      if (gameOver) return;
+      attackMode = false;
+      attackSource = null;
+      selectedNum = n;
+      render();
+    });
+    sel.appendChild(btn);
+  }
+  // Attack button
+  const atkBtn = document.createElement('button');
+  atkBtn.className = 'num-btn attack-btn';
+  atkBtn.textContent = 'Atacar';
+  if (attackMode) atkBtn.classList.add('selected');
+  if (!hasValidAttack()) atkBtn.classList.add('disabled');
+  atkBtn.addEventListener('click', () => {
+    if (gameOver) return;
+    attackMode = !attackMode;
+    attackSource = null;
+    selectedNum = null;
+    render();
+  });
+  sel.appendChild(atkBtn);
+}
+
+function renderScores() {
+  document.getElementById('goldVal').textContent = scores[GOLD];
+  document.getElementById('purpleVal').textContent = scores[PURPLE];
+  document.getElementById('scoreGold').classList.toggle('active', currentPlayer === GOLD);
+  document.getElementById('scorePurple').classList.toggle('active', currentPlayer === PURPLE);
+}
+
+function renderStatus() {
+  const statusEl = document.getElementById('status');
+  if (gameOver) {
+    statusEl.textContent = 'Juego terminado';
+    statusEl.className = 'status';
+    return;
+  }
+  const name = currentPlayer === GOLD ? 'Oro' : 'Púrpura';
+  if (attackMode) {
+    statusEl.textContent = attackSource === null
+      ? `${name} — Selecciona tu pieza para atacar`
+      : `${name} — Selecciona pieza enemiga adyacente (número menor)`;
+  } else if (selectedNum) {
+    statusEl.textContent = `${name} — Coloca el ${selectedNum} en el tablero`;
+  } else {
+    statusEl.textContent = `Turno de ${name} — Elige un número o ataca`;
+  }
+  statusEl.className = 'status ' + (currentPlayer === GOLD ? 'gold-turn' : 'purple-turn');
+}
+
+// ==================== GAME LOGIC ====================
+function getRow(i) { return Math.floor(i / 9); }
+function getCol(i) { return i % 9; }
+function getBox(i) { return Math.floor(getRow(i) / 3) * 3 + Math.floor(getCol(i) / 3); }
+function boxTopLeft(box) { return (Math.floor(box / 3) * 3) * 9 + (box % 3) * 3; }
+
+function isValidPlacement(index, num) {
+  if (board[index].value !== 0) return false;
+  const r = getRow(index), c = getCol(index);
+  // Check row
+  for (let j = 0; j < 9; j++) {
+    if (board[r * 9 + j].value === num) return false;
+  }
+  // Check col
+  for (let j = 0; j < 9; j++) {
+    if (board[j * 9 + c].value === num) return false;
+  }
+  // Check 3x3 box
+  const br = Math.floor(r / 3) * 3, bc = Math.floor(c / 3) * 3;
+  for (let dr = 0; dr < 3; dr++) {
+    for (let dc = 0; dc < 3; dc++) {
+      if (board[(br + dr) * 9 + (bc + dc)].value === num) return false;
+    }
+  }
+  return true;
+}
+
+function hasValidPlacement(num) {
+  for (let i = 0; i < 81; i++) {
+    if (isValidPlacement(i, num)) return true;
+  }
+  return false;
+}
+
+function hasAnyValidMove() {
+  for (let n = 1; n <= 9; n++) {
+    if (hasValidPlacement(n)) return true;
+  }
+  return hasValidAttack();
+}
+
+function getNeighbors(index) {
+  const r = getRow(index), c = getCol(index);
+  const n = [];
+  if (r > 0) n.push(index - 9);
+  if (r < 8) n.push(index + 9);
+  if (c > 0) n.push(index - 1);
+  if (c < 8) n.push(index + 1);
+  return n;
+}
+
+// Go-style liberty check
+function getGroup(index) {
+  const owner = board[index].owner;
+  if (owner === EMPTY) return {cells: [], liberties: 0};
+  const visited = new Set();
+  const stack = [index];
+  let liberties = 0;
+  while (stack.length > 0) {
+    const cur = stack.pop();
+    if (visited.has(cur)) continue;
+    visited.add(cur);
+    for (const nb of getNeighbors(cur)) {
+      if (board[nb].owner === EMPTY) liberties++;
+      else if (board[nb].owner === owner && !visited.has(nb)) stack.push(nb);
+    }
+  }
+  return {cells: [...visited], liberties};
+}
+
+function checkCaptures(placedIndex) {
+  const captured = [];
+  const player = board[placedIndex].owner;
+  // Check neighbor groups of opponent
+  for (const nb of getNeighbors(placedIndex)) {
+    if (board[nb].owner !== EMPTY && board[nb].owner !== player) {
+      const group = getGroup(nb);
+      if (group.liberties === 0) {
+        captured.push(...group.cells);
+      }
+    }
+  }
+  return [...new Set(captured)];
+}
+
+// Tic-tac-toe line check within 3x3 sub-regions
+function checkLines(player) {
+  let newLines = 0;
+  for (let box = 0; box < 9; box++) {
+    const tl = boxTopLeft(box);
+    const cells = [];
+    for (let dr = 0; dr < 3; dr++) {
+      for (let dc = 0; dc < 3; dc++) {
+        cells.push(tl + dr * 9 + dc);
+      }
+    }
+    // 8 possible lines in a 3x3
+    const lines = [
+      [cells[0], cells[1], cells[2]], // rows
+      [cells[3], cells[4], cells[5]],
+      [cells[6], cells[7], cells[8]],
+      [cells[0], cells[3], cells[6]], // cols
+      [cells[1], cells[4], cells[7]],
+      [cells[2], cells[5], cells[8]],
+      [cells[0], cells[4], cells[8]], // diags
+      [cells[2], cells[4], cells[6]],
+    ];
+    for (const line of lines) {
+      const key = line.join(',');
+      if (completedLines.has(key)) continue;
+      if (line.every(i => board[i].owner === player)) {
+        completedLines.add(key);
+        newLines++;
+        // Animate
+        setTimeout(() => {
+          line.forEach(i => {
+            const cellEl = document.getElementById('board').children[i];
+            if (cellEl) cellEl.classList.add('scored');
+            setTimeout(() => cellEl && cellEl.classList.remove('scored'), 500);
+          });
+        }, 100);
+      }
+    }
+  }
+  return newLines;
+}
+
+function hasValidAttack() {
+  for (let i = 0; i < 81; i++) {
+    if (board[i].owner !== currentPlayer) continue;
+    const r = getRow(i), c = getCol(i);
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        if (dr === 0 && dc === 0) continue;
+        const nr = r + dr, nc = c + dc;
+        if (nr < 0 || nr > 8 || nc < 0 || nc > 8) continue;
+        const ni = nr * 9 + nc;
+        if (board[ni].owner !== EMPTY && board[ni].owner !== currentPlayer && board[i].value > board[ni].value) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+// ==================== ACTIONS ====================
+function onCellClick(index) {
+  if (gameOver) return;
+
+  if (attackMode) {
+    handleAttack(index);
+    return;
+  }
+
+  if (selectedNum === null) return;
+  if (!isValidPlacement(index, selectedNum)) {
+    // Flash invalid
+    const cellEl = document.getElementById('board').children[index];
+    cellEl.classList.add('invalid-flash');
+    setTimeout(() => cellEl.classList.remove('invalid-flash'), 300);
+    return;
+  }
+
+  // Save state for undo
+  moveHistory.push({
+    type: 'place',
+    index,
+    num: selectedNum,
+    player: currentPlayer,
+    prevBoard: JSON.parse(JSON.stringify(board)),
+    prevScores: {...scores},
+    prevCompletedLines: new Set(completedLines),
+  });
+
+  // Place piece
+  board[index] = {value: selectedNum, owner: currentPlayer};
+  scores[currentPlayer] += 1; // 1 point for placing
+  consecutivePasses = 0;
+
+  // Check Go captures
+  const captured = checkCaptures(index);
+  if (captured.length > 0) {
+    scores[currentPlayer] += captured.length * 2;
+    captured.forEach(ci => {
+      const cellEl = document.getElementById('board').children[ci];
+      if (cellEl) {
+        cellEl.classList.add('captured');
+      }
+    });
+    setTimeout(() => {
+      captured.forEach(ci => {
+        board[ci] = {value: 0, owner: EMPTY};
+      });
+      // Check lines after captures resolved
+      const lines = checkLines(currentPlayer);
+      scores[currentPlayer] += lines * 3;
+      endTurn();
+    }, 400);
+    return;
+  }
+
+  // Check tic-tac-toe lines
+  const lines = checkLines(currentPlayer);
+  scores[currentPlayer] += lines * 3;
+
+  endTurn();
+}
+
+function handleAttack(index) {
+  if (attackSource === null) {
+    // Select source (must be current player's piece)
+    if (board[index].owner !== currentPlayer) return;
+    attackSource = index;
+    render();
+    return;
+  }
+
+  // Select target
+  const sr = getRow(attackSource), sc = getCol(attackSource);
+  const tr = getRow(index), tc = getCol(index);
+  if (Math.abs(sr - tr) > 1 || Math.abs(sc - tc) > 1 || (sr === tr && sc === tc)) {
+    attackSource = null;
+    render();
+    return;
+  }
+  if (board[index].owner === EMPTY || board[index].owner === currentPlayer) {
+    attackSource = null;
+    render();
+    return;
+  }
+  if (board[attackSource].value <= board[index].value) {
+    attackSource = null;
+    render();
+    return;
+  }
+
+  // Save for undo
+  moveHistory.push({
+    type: 'attack',
+    source: attackSource,
+    target: index,
+    player: currentPlayer,
+    prevBoard: JSON.parse(JSON.stringify(board)),
+    prevScores: {...scores},
+    prevCompletedLines: new Set(completedLines),
+  });
+
+  // Execute attack
+  const cellEl = document.getElementById('board').children[index];
+  cellEl.classList.add('captured');
+  setTimeout(() => {
+    board[index] = {value: 0, owner: EMPTY};
+    scores[currentPlayer] += 1;
+    consecutivePasses = 0;
+    attackMode = false;
+    attackSource = null;
+    endTurn();
+  }, 400);
+}
+
+function endTurn() {
+  selectedNum = null;
+  attackMode = false;
+  attackSource = null;
+  currentPlayer = currentPlayer === GOLD ? PURPLE : GOLD;
+
+  // Check game end
+  if (consecutivePasses >= 2 || !hasAnyValidMoveForEither()) {
+    endGame();
+    return;
+  }
+  render();
+}
+
+function hasAnyValidMoveForEither() {
+  const saved = currentPlayer;
+  // Check current
+  let has = hasAnyValidMove();
+  if (has) { currentPlayer = saved; return true; }
+  // Check other
+  currentPlayer = currentPlayer === GOLD ? PURPLE : GOLD;
+  has = hasAnyValidMove();
+  currentPlayer = saved;
+  return has;
+}
+
+function passTurn() {
+  if (gameOver) return;
+  consecutivePasses++;
+  moveHistory.push({
+    type: 'pass',
+    player: currentPlayer,
+    prevBoard: JSON.parse(JSON.stringify(board)),
+    prevScores: {...scores},
+    prevCompletedLines: new Set(completedLines),
+  });
+  endTurn();
+}
+
+function undoMove() {
+  if (moveHistory.length === 0 || gameOver) return;
+  const last = moveHistory.pop();
+  board = last.prevBoard;
+  scores = last.prevScores;
+  completedLines = last.prevCompletedLines;
+  currentPlayer = last.player;
+  consecutivePasses = Math.max(0, consecutivePasses - 1);
+  selectedNum = null;
+  attackMode = false;
+  attackSource = null;
+  render();
+}
+
+function endGame() {
+  gameOver = true;
+  render();
+  const overlay = document.getElementById('winnerOverlay');
+  const text = document.getElementById('winnerText');
+  const score = document.getElementById('winnerScore');
+
+  overlay.classList.remove('gold-wins', 'purple-wins', 'draw');
+
+  if (scores[GOLD] > scores[PURPLE]) {
+    text.textContent = '¡Oro Gana!';
+    overlay.classList.add('gold-wins');
+  } else if (scores[PURPLE] > scores[GOLD]) {
+    text.textContent = '¡Púrpura Gana!';
+    overlay.classList.add('purple-wins');
+  } else {
+    text.textContent = '¡Empate!';
+    overlay.classList.add('draw');
+  }
+  score.textContent = `Oro ${scores[GOLD]} — ${scores[PURPLE]} Púrpura`;
+  overlay.classList.add('show');
+}
+
+function resetGame() {
+  document.getElementById('winnerOverlay').classList.remove('show');
+  initBoard();
+}
+
+function showRules() {
+  document.getElementById('rulesPanel').classList.add('show');
+  document.getElementById('rulesOverlay').classList.add('show');
+}
+
+function hideRules() {
+  document.getElementById('rulesPanel').classList.remove('show');
+  document.getElementById('rulesOverlay').classList.remove('show');
+}
+
+// ==================== START ====================
+initBoard();
+</script>
+</body>
+</html>
