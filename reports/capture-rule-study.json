@@ -1,0 +1,761 @@
+{
+  "metadata": {
+    "date": "2026-07-28",
+    "board": "9x9",
+    "turns": 30,
+    "gamesPerVariant": 1000,
+    "policy": "epsilon-greedy",
+    "epsilon": 0.1,
+    "seed": 20260728,
+    "scoreRule": {
+      "place": 1,
+      "goCapturePerStone": 2,
+      "line": 3,
+      "attack": 1,
+      "explanation": "Colocar 1; cada piedra capturada 2; línea 3; ataque 1."
+    },
+    "evaluationScope": "Solo agente; no se suma al marcador.",
+    "evaluation": {
+      "visibleScore": 10,
+      "number": 0.37,
+      "rowClosure": 0.41,
+      "columnClosure": 0.43,
+      "boxClosure": 0.47,
+      "center": 0.71,
+      "ownNeighbor": 0.79,
+      "enemyNeighbor": 0.83,
+      "cellConstraint": 0.89,
+      "numberScarcity": 0.097,
+      "enemyLibertyReduction": 1,
+      "ownLibertyGain": 0.61,
+      "groupLiberties": 0.73,
+      "enemyAtariGain": 20,
+      "linePotentialGain": 0.59,
+      "attackThreatGain": 0.67,
+      "attackStrength": 4
+    },
+    "influenceDefinition": "Pearson entre diferencial de eventos y diferencial de marcador; para Go el evento es cada piedra capturada. Victoria condicionada a diferencial de eventos y marcador no empatado."
+  },
+  "variants": [
+    {
+      "id": "control",
+      "name": "Control: cerco completo",
+      "rule": "Un grupo se captura cuando pierde su última libertad.",
+      "games": 1000,
+      "uniqueTrajectories": 964,
+      "explorationPercent": {
+        "n": 1000,
+        "mean": 10.103333333333335,
+        "sd": 5.396150541162207,
+        "p10": 3.3333333333333335,
+        "p50": 10,
+        "p90": 16.666666666666668,
+        "p95": 20,
+        "max": 26.666666666666668
+      },
+      "greedyTiePercent": {
+        "n": 1000,
+        "mean": 10.480000000000024,
+        "sd": 4.113374914412732,
+        "p10": 6.666666666666667,
+        "p50": 10,
+        "p90": 16.666666666666668,
+        "p95": 16.666666666666668,
+        "max": 26.666666666666668
+      },
+      "score": {
+        "n": 1000,
+        "mean": 79.992,
+        "sd": 8.402174274110992,
+        "p10": 68,
+        "p50": 81,
+        "p90": 89,
+        "p95": 92,
+        "max": 104
+      },
+      "activeEnclosureTurns": {
+        "n": 1919,
+        "mean": 7.415841584158416,
+        "sd": 5.068156862326555,
+        "p10": 2,
+        "p50": 6,
+        "p90": 14,
+        "p95": 16,
+        "max": 26
+      },
+      "captureEventsPerGame": {
+        "n": 1000,
+        "mean": 1.919,
+        "sd": 2.9565486940316315,
+        "p10": 0,
+        "p50": 1,
+        "p90": 3,
+        "p95": 7,
+        "max": 22
+      },
+      "capturedStonesPerGame": {
+        "n": 1000,
+        "mean": 1.923,
+        "sd": 2.9559784858501392,
+        "p10": 0,
+        "p50": 1,
+        "p90": 3,
+        "p95": 7,
+        "max": 22
+      },
+      "mechanisms": {
+        "go": {
+          "noEventCount": 224,
+          "noEventPercent": 22.4,
+          "noEventWilson95": {
+            "low": 19.924300202885668,
+            "high": 25.086944599083093
+          },
+          "eventsPerGame": {
+            "n": 1000,
+            "mean": 1.923,
+            "sd": 2.9559784858501392,
+            "p10": 0,
+            "p50": 1,
+            "p90": 3,
+            "p95": 7,
+            "max": 22
+          },
+          "influence": {
+            "correlation": 0.38316528906765085,
+            "advantageGames": 688,
+            "decisiveScores": 687,
+            "winRate": 82.24163027656478,
+            "conditionedScoreTiePercent": 0.14534883720930233
+          }
+        },
+        "line": {
+          "noEventCount": 0,
+          "noEventPercent": 0,
+          "noEventWilson95": {
+            "low": 0,
+            "high": 0.3826898586390522
+          },
+          "eventsPerGame": {
+            "n": 1000,
+            "mean": 15.382,
+            "sd": 3.2843359850756517,
+            "p10": 11,
+            "p50": 16,
+            "p90": 19,
+            "p95": 20,
+            "max": 24
+          },
+          "influence": {
+            "correlation": 0.9690758376004488,
+            "advantageGames": 851,
+            "decisiveScores": 850,
+            "winRate": 96,
+            "conditionedScoreTiePercent": 0.11750881316098707
+          }
+        },
+        "attack": {
+          "noEventCount": 806,
+          "noEventPercent": 80.6,
+          "noEventWilson95": {
+            "low": 78.03389611908129,
+            "high": 82.93189768743163
+          },
+          "eventsPerGame": {
+            "n": 1000,
+            "mean": 0.421,
+            "sd": 1.0463526431628332,
+            "p10": 0,
+            "p50": 0,
+            "p90": 2,
+            "p95": 3,
+            "max": 7
+          },
+          "influence": {
+            "correlation": -0.37146241791060464,
+            "advantageGames": 194,
+            "decisiveScores": 188,
+            "winRate": 18.085106382978722,
+            "conditionedScoreTiePercent": 3.0927835051546393
+          }
+        }
+      }
+    },
+    {
+      "id": "v1-atari-sostenido",
+      "name": "V1: atari sostenido",
+      "rule": "Un grupo en atari se captura si en su siguiente turno no sube de una libertad.",
+      "games": 1000,
+      "uniqueTrajectories": 970,
+      "explorationPercent": {
+        "n": 1000,
+        "mean": 10.10333333333333,
+        "sd": 5.396150541162207,
+        "p10": 3.3333333333333335,
+        "p50": 10,
+        "p90": 16.666666666666668,
+        "p95": 20,
+        "max": 26.666666666666668
+      },
+      "greedyTiePercent": {
+        "n": 1000,
+        "mean": 11.133333333333352,
+        "sd": 4.3844803697310555,
+        "p10": 6.666666666666667,
+        "p50": 10,
+        "p90": 16.666666666666668,
+        "p95": 16.666666666666668,
+        "max": 30
+      },
+      "score": {
+        "n": 1000,
+        "mean": 80.412,
+        "sd": 10.930037590133049,
+        "p10": 64,
+        "p50": 83,
+        "p90": 91,
+        "p95": 92,
+        "max": 102
+      },
+      "activeEnclosureTurns": {
+        "n": 1003,
+        "mean": 7.371884346959122,
+        "sd": 3.847165939630116,
+        "p10": 2,
+        "p50": 7,
+        "p90": 12,
+        "p95": 15,
+        "max": 27
+      },
+      "captureEventsPerGame": {
+        "n": 1000,
+        "mean": 1.003,
+        "sd": 0.809720103891857,
+        "p10": 0,
+        "p50": 1,
+        "p90": 2,
+        "p95": 2,
+        "max": 4
+      },
+      "capturedStonesPerGame": {
+        "n": 1000,
+        "mean": 1.104,
+        "sd": 1.0149946867911175,
+        "p10": 0,
+        "p50": 1,
+        "p90": 2,
+        "p95": 3,
+        "max": 9
+      },
+      "mechanisms": {
+        "go": {
+          "noEventCount": 285,
+          "noEventPercent": 28.5,
+          "noEventWilson95": {
+            "low": 25.788529526982206,
+            "high": 31.376027112232585
+          },
+          "eventsPerGame": {
+            "n": 1000,
+            "mean": 1.104,
+            "sd": 1.0149946867911175,
+            "p10": 0,
+            "p50": 1,
+            "p90": 2,
+            "p95": 3,
+            "max": 9
+          },
+          "influence": {
+            "correlation": 0.46570822241707416,
+            "advantageGames": 668,
+            "decisiveScores": 668,
+            "winRate": 84.73053892215569,
+            "conditionedScoreTiePercent": 0
+          }
+        },
+        "line": {
+          "noEventCount": 0,
+          "noEventPercent": 0,
+          "noEventWilson95": {
+            "low": 0,
+            "high": 0.3826898586390522
+          },
+          "eventsPerGame": {
+            "n": 1000,
+            "mean": 16.068,
+            "sd": 3.5810892477289915,
+            "p10": 11,
+            "p50": 17,
+            "p90": 19,
+            "p95": 20,
+            "max": 24
+          },
+          "influence": {
+            "correlation": 0.9629064112582085,
+            "advantageGames": 763,
+            "decisiveScores": 763,
+            "winRate": 99.08256880733946,
+            "conditionedScoreTiePercent": 0
+          }
+        },
+        "attack": {
+          "noEventCount": 724,
+          "noEventPercent": 72.4,
+          "noEventWilson95": {
+            "low": 69.54761699680836,
+            "high": 75.08093794652136
+          },
+          "eventsPerGame": {
+            "n": 1000,
+            "mean": 0.696,
+            "sd": 1.4641474405700154,
+            "p10": 0,
+            "p50": 0,
+            "p90": 3,
+            "p95": 4,
+            "max": 10
+          },
+          "influence": {
+            "correlation": -0.46815528754208113,
+            "advantageGames": 274,
+            "decisiveScores": 258,
+            "winRate": 19.37984496124031,
+            "conditionedScoreTiePercent": 5.839416058394161
+          }
+        }
+      }
+    },
+    {
+      "id": "v2-grupo-grande",
+      "name": "V2: penúltima libertad",
+      "rule": "Un grupo de tres o más piedras se captura al quedar con una sola libertad.",
+      "games": 1000,
+      "uniqueTrajectories": 964,
+      "explorationPercent": {
+        "n": 1000,
+        "mean": 10.10333333333334,
+        "sd": 5.396150541162205,
+        "p10": 3.3333333333333335,
+        "p50": 10,
+        "p90": 16.666666666666668,
+        "p95": 20,
+        "max": 26.666666666666668
+      },
+      "greedyTiePercent": {
+        "n": 1000,
+        "mean": 10.480000000000018,
+        "sd": 4.113374914412731,
+        "p10": 6.666666666666667,
+        "p50": 10,
+        "p90": 16.666666666666668,
+        "p95": 16.666666666666668,
+        "max": 26.666666666666668
+      },
+      "score": {
+        "n": 1000,
+        "mean": 80.097,
+        "sd": 8.426660050079136,
+        "p10": 68,
+        "p50": 81,
+        "p90": 89,
+        "p95": 92,
+        "max": 104
+      },
+      "activeEnclosureTurns": {
+        "n": 1921,
+        "mean": 7.464862051015096,
+        "sd": 5.129666482642671,
+        "p10": 2,
+        "p50": 6,
+        "p90": 14,
+        "p95": 16,
+        "max": 28
+      },
+      "captureEventsPerGame": {
+        "n": 1000,
+        "mean": 1.921,
+        "sd": 2.9491450382197946,
+        "p10": 0,
+        "p50": 1,
+        "p90": 3,
+        "p95": 7,
+        "max": 22
+      },
+      "capturedStonesPerGame": {
+        "n": 1000,
+        "mean": 1.971,
+        "sd": 3.0078574112158645,
+        "p10": 0,
+        "p50": 1,
+        "p90": 3.1000000000000227,
+        "p95": 8,
+        "max": 22
+      },
+      "mechanisms": {
+        "go": {
+          "noEventCount": 222,
+          "noEventPercent": 22.2,
+          "noEventWilson95": {
+            "low": 19.733260399021365,
+            "high": 24.879515162381953
+          },
+          "eventsPerGame": {
+            "n": 1000,
+            "mean": 1.971,
+            "sd": 3.0078574112158645,
+            "p10": 0,
+            "p50": 1,
+            "p90": 3.1000000000000227,
+            "p95": 8,
+            "max": 22
+          },
+          "influence": {
+            "correlation": 0.3823413281889358,
+            "advantageGames": 691,
+            "decisiveScores": 688,
+            "winRate": 82.41279069767442,
+            "conditionedScoreTiePercent": 0.4341534008683068
+          }
+        },
+        "line": {
+          "noEventCount": 0,
+          "noEventPercent": 0,
+          "noEventWilson95": {
+            "low": 0,
+            "high": 0.3826898586390522
+          },
+          "eventsPerGame": {
+            "n": 1000,
+            "mean": 15.385,
+            "sd": 3.277119850495946,
+            "p10": 11,
+            "p50": 16,
+            "p90": 19,
+            "p95": 20,
+            "max": 24
+          },
+          "influence": {
+            "correlation": 0.9621467644145586,
+            "advantageGames": 851,
+            "decisiveScores": 848,
+            "winRate": 96.10849056603773,
+            "conditionedScoreTiePercent": 0.3525264394829612
+          }
+        },
+        "attack": {
+          "noEventCount": 806,
+          "noEventPercent": 80.6,
+          "noEventWilson95": {
+            "low": 78.03389611908129,
+            "high": 82.93189768743163
+          },
+          "eventsPerGame": {
+            "n": 1000,
+            "mean": 0.421,
+            "sd": 1.0463526431628343,
+            "p10": 0,
+            "p50": 0,
+            "p90": 2,
+            "p95": 3,
+            "max": 7
+          },
+          "influence": {
+            "correlation": -0.3699727062549257,
+            "advantageGames": 194,
+            "decisiveScores": 188,
+            "winRate": 18.085106382978722,
+            "conditionedScoreTiePercent": 3.0927835051546393
+          }
+        }
+      }
+    },
+    {
+      "id": "v3-apertura-fija",
+      "name": "V3: apertura fija",
+      "rule": "Cada bando empieza con seis piedras fijas y sin puntos; la captura no cambia.",
+      "games": 1000,
+      "uniqueTrajectories": 957,
+      "explorationPercent": {
+        "n": 1000,
+        "mean": 10.10333333333334,
+        "sd": 5.396150541162205,
+        "p10": 3.3333333333333335,
+        "p50": 10,
+        "p90": 16.666666666666668,
+        "p95": 20,
+        "max": 26.666666666666668
+      },
+      "greedyTiePercent": {
+        "n": 1000,
+        "mean": 1.9299999999999904,
+        "sd": 2.1400186166666355,
+        "p10": 0,
+        "p50": 0,
+        "p90": 3.3333333333333335,
+        "p95": 6.666666666666667,
+        "max": 10
+      },
+      "score": {
+        "n": 1000,
+        "mean": 84.41,
+        "sd": 8.92533257428324,
+        "p10": 73,
+        "p50": 84,
+        "p90": 96,
+        "p95": 99,
+        "max": 111
+      },
+      "activeEnclosureTurns": {
+        "n": 1991,
+        "mean": 7.351079859367152,
+        "sd": 5.69146390624863,
+        "p10": 2,
+        "p50": 6,
+        "p90": 17,
+        "p95": 19,
+        "max": 23
+      },
+      "captureEventsPerGame": {
+        "n": 1000,
+        "mean": 1.991,
+        "sd": 2.5391664707865136,
+        "p10": 0,
+        "p50": 1,
+        "p90": 4,
+        "p95": 7,
+        "max": 18
+      },
+      "capturedStonesPerGame": {
+        "n": 1000,
+        "mean": 2.029,
+        "sd": 2.5738655333532505,
+        "p10": 0,
+        "p50": 1,
+        "p90": 4,
+        "p95": 7,
+        "max": 18
+      },
+      "mechanisms": {
+        "go": {
+          "noEventCount": 226,
+          "noEventPercent": 22.6,
+          "noEventWilson95": {
+            "low": 20.115424829035227,
+            "high": 25.294289213498978
+          },
+          "eventsPerGame": {
+            "n": 1000,
+            "mean": 2.029,
+            "sd": 2.5738655333532505,
+            "p10": 0,
+            "p50": 1,
+            "p90": 4,
+            "p95": 7,
+            "max": 18
+          },
+          "influence": {
+            "correlation": 0.5105184858558461,
+            "advantageGames": 654,
+            "decisiveScores": 654,
+            "winRate": 72.62996941896024,
+            "conditionedScoreTiePercent": 0
+          }
+        },
+        "line": {
+          "noEventCount": 0,
+          "noEventPercent": 0,
+          "noEventWilson95": {
+            "low": 0,
+            "high": 0.3826898586390522
+          },
+          "eventsPerGame": {
+            "n": 1000,
+            "mean": 16.784,
+            "sd": 3.331432491052828,
+            "p10": 13,
+            "p50": 17,
+            "p90": 21,
+            "p95": 22,
+            "max": 26
+          },
+          "influence": {
+            "correlation": 0.9582076205038446,
+            "advantageGames": 829,
+            "decisiveScores": 829,
+            "winRate": 97.1049457177322,
+            "conditionedScoreTiePercent": 0
+          }
+        },
+        "attack": {
+          "noEventCount": 861,
+          "noEventPercent": 86.1,
+          "noEventWilson95": {
+            "low": 83.81730246613444,
+            "high": 88.10639545592818
+          },
+          "eventsPerGame": {
+            "n": 1000,
+            "mean": 0.186,
+            "sd": 0.5636680953555225,
+            "p10": 0,
+            "p50": 0,
+            "p90": 1,
+            "p95": 1,
+            "max": 6
+          },
+          "influence": {
+            "correlation": -0.19729337937559194,
+            "advantageGames": 138,
+            "decisiveScores": 129,
+            "winRate": 37.98449612403101,
+            "conditionedScoreTiePercent": 6.521739130434782
+          }
+        }
+      }
+    },
+    {
+      "id": "v4-presion-numerica",
+      "name": "V4: presión numérica",
+      "rule": "Con hasta dos libertades, un grupo cae si los números enemigos que lo tocan suman 10.",
+      "games": 1000,
+      "uniqueTrajectories": 991,
+      "explorationPercent": {
+        "n": 1000,
+        "mean": 10.103333333333332,
+        "sd": 5.396150541162207,
+        "p10": 3.3333333333333335,
+        "p50": 10,
+        "p90": 16.666666666666668,
+        "p95": 20,
+        "max": 26.666666666666668
+      },
+      "greedyTiePercent": {
+        "n": 1000,
+        "mean": 14.629999999999994,
+        "sd": 6.132847864902993,
+        "p10": 6.666666666666667,
+        "p50": 16.666666666666668,
+        "p90": 23.333333333333332,
+        "p95": 23.333333333333332,
+        "max": 26.666666666666668
+      },
+      "score": {
+        "n": 1000,
+        "mean": 83.833,
+        "sd": 8.229266785797616,
+        "p10": 72,
+        "p50": 86,
+        "p90": 92,
+        "p95": 95,
+        "max": 110
+      },
+      "activeEnclosureTurns": {
+        "n": 3678,
+        "mean": 3.117727025557368,
+        "sd": 2.3511449480515973,
+        "p10": 2,
+        "p50": 2,
+        "p90": 5,
+        "p95": 8,
+        "max": 25
+      },
+      "captureEventsPerGame": {
+        "n": 1000,
+        "mean": 3.678,
+        "sd": 3.5472382072393827,
+        "p10": 1,
+        "p50": 3,
+        "p90": 6,
+        "p95": 11.049999999999955,
+        "max": 26
+      },
+      "capturedStonesPerGame": {
+        "n": 1000,
+        "mean": 3.749,
+        "sd": 3.5739014776252276,
+        "p10": 1,
+        "p50": 3,
+        "p90": 7,
+        "p95": 11.049999999999955,
+        "max": 26
+      },
+      "mechanisms": {
+        "go": {
+          "noEventCount": 71,
+          "noEventPercent": 7.1,
+          "noEventWilson95": {
+            "low": 5.666945999361375,
+            "high": 8.861401899350932
+          },
+          "eventsPerGame": {
+            "n": 1000,
+            "mean": 3.749,
+            "sd": 3.5739014776252276,
+            "p10": 1,
+            "p50": 3,
+            "p90": 7,
+            "p95": 11.049999999999955,
+            "max": 26
+          },
+          "influence": {
+            "correlation": 0.6246612498668245,
+            "advantageGames": 841,
+            "decisiveScores": 835,
+            "winRate": 90.17964071856288,
+            "conditionedScoreTiePercent": 0.713436385255648
+          }
+        },
+        "line": {
+          "noEventCount": 1,
+          "noEventPercent": 0.1,
+          "noEventWilson95": {
+            "low": 0.01765418290572713,
+            "high": 0.5642702960160471
+          },
+          "eventsPerGame": {
+            "n": 1000,
+            "mean": 15.445,
+            "sd": 3.729193194496888,
+            "p10": 10,
+            "p50": 16,
+            "p90": 19,
+            "p95": 20,
+            "max": 26
+          },
+          "influence": {
+            "correlation": 0.9201251794850335,
+            "advantageGames": 846,
+            "decisiveScores": 840,
+            "winRate": 92.73809523809524,
+            "conditionedScoreTiePercent": 0.7092198581560284
+          }
+        },
+        "attack": {
+          "noEventCount": 829,
+          "noEventPercent": 82.9,
+          "noEventWilson95": {
+            "low": 80.44153737871807,
+            "high": 85.10665269429745
+          },
+          "eventsPerGame": {
+            "n": 1000,
+            "mean": 0.392,
+            "sd": 1.0194976093034196,
+            "p10": 0,
+            "p50": 0,
+            "p90": 2,
+            "p95": 3,
+            "max": 6
+          },
+          "influence": {
+            "correlation": -0.4497144819934271,
+            "advantageGames": 171,
+            "decisiveScores": 167,
+            "winRate": 9.580838323353293,
+            "conditionedScoreTiePercent": 2.3391812865497075
+          }
+        }
+      }
+    }
+  ]
+}

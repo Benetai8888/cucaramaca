@@ -1,4 +1,7 @@
 {
+  "status": "withdrawn",
+  "withdrawnDate": "2026-07-28",
+  "withdrawalReason": "Resultado inválido: usa la puntuación v3 contaminada por capturas Go fantasma en ataques y mezcla captura con evaluación posicional.",
   "scheme": "multi-gp1-l30-a84",
   "schemeName": "Presión Go 1, línea 30, ataque 8+4d",
   "width": 12,

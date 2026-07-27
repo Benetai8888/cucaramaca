@@ -1,5 +1,11 @@
 # Puntuación v3: discriminación y robustez
 
+> RETIRADO el 2026-07-28. Toda esta ronda es inválida para decisiones de diseño.
+> El selector contó piezas retiradas por ataques de ajedrez como capturas Go y
+> `breakdown.go` mezcló capturas con evaluación posicional. Quedan retirados los
+> 30 experimentos, la comparación de 10 esquemas, el komi 540.22, la cota 14.3%
+> y las conclusiones de profundidad asociadas. Se conserva solo como registro.
+
 Fecha: 2026-07-27. Terminación fija: límite de 30 turnos.
 Partidas por esquema y desempate: 100.
 Total: 3,000 partidas. Semilla: 20260727.

@@ -1,5 +1,8 @@
 {
   "metadata": {
+    "status": "withdrawn",
+    "withdrawnDate": "2026-07-28",
+    "withdrawalReason": "Ronda inválida: los ataques de ajedrez se contaron como capturas Go y breakdown.go mezcló captura con evaluación posicional. Se retiran los 30 experimentos, 10 esquemas, komi 540.22, cota 14.3% y conclusiones asociadas.",
     "date": "2026-07-27",
     "gamesPerTieRule": 100,
     "seed": 20260727,

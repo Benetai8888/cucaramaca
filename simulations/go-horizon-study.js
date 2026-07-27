@@ -987,7 +987,7 @@ function parseArguments(argv) {
   return options;
 }
 
-if (!isMainThread) {
+if (!isMainThread && require.main === module) {
   parentPort.on('message', task => parentPort.postMessage(runBatch(task)));
 } else if (require.main === module) {
   const options = parseArguments(process.argv.slice(2));
