@@ -1,0 +1,58 @@
+{
+  "scheme": "multi-gp1-l30-a84",
+  "schemeName": "Presión Go 1, línea 30, ataque 8+4d",
+  "width": 12,
+  "cutoffTiesIncluded": true,
+  "evaluation": "diferencia de puntuación reglamentaria, sin heurística posicional externa",
+  "games": [
+    {
+      "goldDepth": 3,
+      "purpleDepth": 2,
+      "winner": 1,
+      "scores": [
+        1203.097,
+        871.0360000000003
+      ],
+      "margin": 332.0609999999997,
+      "breakdown": {
+        "place": 647.6129999999999,
+        "go": 1074.9599999999998,
+        "line": 348.87999999999994,
+        "attack": 2.68
+      },
+      "diagnostics": {
+        "nodes": 10386,
+        "leaves": 7966,
+        "cutoffs": 1763,
+        "minBranch": 12,
+        "maxBranch": 15
+      }
+    },
+    {
+      "goldDepth": 2,
+      "purpleDepth": 3,
+      "winner": 2,
+      "scores": [
+        718.183,
+        818.8300000000002
+      ],
+      "margin": 100.64700000000016,
+      "breakdown": {
+        "place": 599.3030000000001,
+        "go": 493.0599999999999,
+        "line": 415.9599999999999,
+        "attack": 28.690000000000005
+      },
+      "diagnostics": {
+        "nodes": 11718,
+        "leaves": 9316,
+        "cutoffs": 1775,
+        "minBranch": 12,
+        "maxBranch": 15
+      }
+    }
+  ],
+  "depth3WinPercent": 100,
+  "depth2WinPercent": 0,
+  "drawPercent": 0
+}
