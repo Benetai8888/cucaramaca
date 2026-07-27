@@ -1,0 +1,380 @@
+{
+  "metadata": {
+    "date": "2026-07-27",
+    "randomGames": 1000,
+    "greedyGames": 1000,
+    "seed": 20260727,
+    "combinations": 12,
+    "totalRandomGames": 12000,
+    "evaluatedCandidates": [
+      "cicatrices-8__objetivos",
+      "cicatrices-8__cerco",
+      "cicatrices-8__desgaste-leve"
+    ]
+  },
+  "terminations": [
+    {
+      "id": "meta-20",
+      "name": "Meta de 20 puntos",
+      "type": "points",
+      "target": 20,
+      "safetyCap": 120
+    },
+    {
+      "id": "limite-30",
+      "name": "Límite de 30 turnos",
+      "type": "turns",
+      "target": 30,
+      "safetyCap": 30
+    },
+    {
+      "id": "cicatrices-8",
+      "name": "8 celdas bloqueadas",
+      "type": "blocked",
+      "target": 8,
+      "safetyCap": 120
+    }
+  ],
+  "scorings": [
+    {
+      "id": "actual",
+      "name": "Actual 1/2/3/+1",
+      "place": 1,
+      "go": 2,
+      "line": 3,
+      "attack": {
+        "mode": "gain",
+        "value": 1
+      }
+    },
+    {
+      "id": "objetivos",
+      "name": "Objetivos .25/50/8/0",
+      "place": 0.25,
+      "go": 50,
+      "line": 8,
+      "attack": {
+        "mode": "none",
+        "value": 0
+      }
+    },
+    {
+      "id": "cerco",
+      "name": "Cerco .2/80/4/0",
+      "place": 0.2,
+      "go": 80,
+      "line": 4,
+      "attack": {
+        "mode": "none",
+        "value": 0
+      }
+    },
+    {
+      "id": "desgaste-leve",
+      "name": "Desgaste .2/60/6/−.1",
+      "place": 0.2,
+      "go": 60,
+      "line": 6,
+      "attack": {
+        "mode": "penalty",
+        "value": 0.1
+      }
+    }
+  ],
+  "results": [
+    {
+      "id": "meta-20__actual",
+      "termination": "meta-20",
+      "terminationName": "Meta de 20 puntos",
+      "scoring": "actual",
+      "scoringName": "Actual 1/2/3/+1",
+      "games": 1000,
+      "meanTurns": 37.286,
+      "stdTurns": 2.6233955096401425,
+      "meanMargin": 1.893,
+      "normalizedMargin": 0.04918032786885246,
+      "drawPercent": 0,
+      "goldWinPercent": 84.8,
+      "capPercent": 0,
+      "shares": {
+        "place": 75.03052661661168,
+        "go": 0.05196019848795822,
+        "line": 3.0786417604115246,
+        "attack": 21.83887142448884
+      },
+      "goLinePercent": 3.130601958899483,
+      "greedy": null
+    },
+    {
+      "id": "meta-20__objetivos",
+      "termination": "meta-20",
+      "terminationName": "Meta de 20 puntos",
+      "scoring": "objetivos",
+      "scoringName": "Objetivos .25/50/8/0",
+      "games": 1000,
+      "meanTurns": 79.298,
+      "stdTurns": 24.358883307738093,
+      "meanMargin": 14.756268806419257,
+      "normalizedMargin": 0.4102792922180236,
+      "drawPercent": 0.3,
+      "goldWinPercent": 52.1,
+      "capPercent": 8.6,
+      "shares": {
+        "place": 37.896419881821345,
+        "go": 10.427528675703858,
+        "line": 51.6760514424748,
+        "attack": 0
+      },
+      "goLinePercent": 62.103580118178655,
+      "greedy": null
+    },
+    {
+      "id": "meta-20__cerco",
+      "termination": "meta-20",
+      "terminationName": "Meta de 20 puntos",
+      "scoring": "cerco",
+      "scoringName": "Cerco .2/80/4/0",
+      "games": 1000,
+      "meanTurns": 104.307,
+      "stdTurns": 20.677252017615864,
+      "meanMargin": 18.336555891238685,
+      "normalizedMargin": 0.4375435544256101,
+      "drawPercent": 0.7,
+      "goldWinPercent": 52,
+      "capPercent": 37.7,
+      "shares": {
+        "place": 33.06327806287153,
+        "go": 28.695365220260847,
+        "line": 38.24135671686762,
+        "attack": 0
+      },
+      "goLinePercent": 66.93672193712847,
+      "greedy": null
+    },
+    {
+      "id": "meta-20__desgaste-leve",
+      "termination": "meta-20",
+      "terminationName": "Meta de 20 puntos",
+      "scoring": "desgaste-leve",
+      "scoringName": "Desgaste .2/60/6/−.1",
+      "games": 1000,
+      "meanTurns": 95.273,
+      "stdTurns": 22.946121044743116,
+      "meanMargin": 16.185714285714283,
+      "normalizedMargin": 0.3725230502776219,
+      "drawPercent": 0.6,
+      "goldWinPercent": 51.3,
+      "capPercent": 25.6,
+      "shares": {
+        "place": 29.38998954846607,
+        "go": 15.884489831624416,
+        "line": 47.48771829663021,
+        "attack": 7.237802323279294
+      },
+      "goLinePercent": 63.37220812825463,
+      "greedy": null
+    },
+    {
+      "id": "limite-30__actual",
+      "termination": "limite-30",
+      "terminationName": "Límite de 30 turnos",
+      "scoring": "actual",
+      "scoringName": "Actual 1/2/3/+1",
+      "games": 1000,
+      "meanTurns": 30,
+      "stdTurns": 0,
+      "meanMargin": 3.1712962962962963,
+      "normalizedMargin": 0.0954437787376341,
+      "drawPercent": 78.4,
+      "goldWinPercent": 11.5,
+      "capPercent": 0,
+      "shares": {
+        "place": 77.75468450621895,
+        "go": 0.03247491312960738,
+        "line": 2.5427856980482577,
+        "attack": 19.67005488260319
+      },
+      "goLinePercent": 2.5752606111778653,
+      "greedy": null
+    },
+    {
+      "id": "limite-30__objetivos",
+      "termination": "limite-30",
+      "terminationName": "Límite de 30 turnos",
+      "scoring": "objetivos",
+      "scoringName": "Objetivos .25/50/8/0",
+      "games": 1000,
+      "meanTurns": 30,
+      "stdTurns": 0,
+      "meanMargin": 3.0784650630011456,
+      "normalizedMargin": 0.34222590092958105,
+      "drawPercent": 12.7,
+      "goldWinPercent": 43.7,
+      "capPercent": 0,
+      "shares": {
+        "place": 69.52953415790083,
+        "go": 5.779678649867067,
+        "line": 24.69078719223211,
+        "attack": 0
+      },
+      "goLinePercent": 30.47046584209918,
+      "greedy": null
+    },
+    {
+      "id": "limite-30__cerco",
+      "termination": "limite-30",
+      "terminationName": "Límite de 30 turnos",
+      "scoring": "cerco",
+      "scoringName": "Cerco .2/80/4/0",
+      "games": 1000,
+      "meanTurns": 30,
+      "stdTurns": 0,
+      "meanMargin": 1.8684090909090998,
+      "normalizedMargin": 0.29042286360264286,
+      "drawPercent": 12,
+      "goldWinPercent": 44.5,
+      "capPercent": 0,
+      "shares": {
+        "place": 77.07552908782382,
+        "go": 7.684180194025534,
+        "line": 15.240290718150643,
+        "attack": 0
+      },
+      "goLinePercent": 22.924470912176176,
+      "greedy": null
+    },
+    {
+      "id": "limite-30__desgaste-leve",
+      "termination": "limite-30",
+      "terminationName": "Límite de 30 turnos",
+      "scoring": "desgaste-leve",
+      "scoringName": "Desgaste .2/60/6/−.1",
+      "games": 1000,
+      "meanTurns": 30,
+      "stdTurns": 0,
+      "meanMargin": 2.217225433526006,
+      "normalizedMargin": 0.2892454793611527,
+      "drawPercent": 13.5,
+      "goldWinPercent": 46.5,
+      "capPercent": 0,
+      "shares": {
+        "place": 64.91192549099013,
+        "go": 6.479044340959695,
+        "line": 20.57096578254703,
+        "attack": 8.038064385503144
+      },
+      "goLinePercent": 27.050010123506727,
+      "greedy": null
+    },
+    {
+      "id": "cicatrices-8__actual",
+      "termination": "cicatrices-8",
+      "terminationName": "8 celdas bloqueadas",
+      "scoring": "actual",
+      "scoringName": "Actual 1/2/3/+1",
+      "games": 1000,
+      "meanTurns": 35.377,
+      "stdTurns": 4.189375967850109,
+      "meanMargin": 2.0866141732283463,
+      "normalizedMargin": 0.055229044224917666,
+      "drawPercent": 36.5,
+      "goldWinPercent": 49.4,
+      "capPercent": 0,
+      "shares": {
+        "place": 74.77568385741948,
+        "go": 0.22908882646521395,
+        "line": 3.289061008536286,
+        "attack": 21.70616630757902
+      },
+      "goLinePercent": 3.5181498350015,
+      "greedy": null
+    },
+    {
+      "id": "cicatrices-8__objetivos",
+      "termination": "cicatrices-8",
+      "terminationName": "8 celdas bloqueadas",
+      "scoring": "objetivos",
+      "scoringName": "Objetivos .25/50/8/0",
+      "games": 1000,
+      "meanTurns": 35.176,
+      "stdTurns": 4.183183476731566,
+      "meanMargin": 5.7716426193118755,
+      "normalizedMargin": 0.4428100053219798,
+      "drawPercent": 9.9,
+      "goldWinPercent": 50.1,
+      "capPercent": 0,
+      "shares": {
+        "place": 54.817275747508305,
+        "go": 19.732205778717407,
+        "line": 25.450518473774288,
+        "attack": 0
+      },
+      "goLinePercent": 45.182724252491695,
+      "greedy": {
+        "games": 1000,
+        "greedyWinPercent": 99.4,
+        "randomWinPercent": 0.6,
+        "drawPercent": 0,
+        "tooTactical": true
+      }
+    },
+    {
+      "id": "cicatrices-8__cerco",
+      "termination": "cicatrices-8",
+      "terminationName": "8 celdas bloqueadas",
+      "scoring": "cerco",
+      "scoringName": "Cerco .2/80/4/0",
+      "games": 1000,
+      "meanTurns": 35.236,
+      "stdTurns": 4.182380183579685,
+      "meanMargin": 5.547845303867398,
+      "normalizedMargin": 0.4972270638567573,
+      "drawPercent": 9.5,
+      "goldWinPercent": 51.3,
+      "capPercent": 0,
+      "shares": {
+        "place": 50.57837757674626,
+        "go": 35.59246626130802,
+        "line": 13.82915616194572,
+        "attack": 0
+      },
+      "goLinePercent": 49.42162242325374,
+      "greedy": {
+        "games": 1000,
+        "greedyWinPercent": 98.1,
+        "randomWinPercent": 1.9,
+        "drawPercent": 0,
+        "tooTactical": true
+      }
+    },
+    {
+      "id": "cicatrices-8__desgaste-leve",
+      "termination": "cicatrices-8",
+      "terminationName": "8 celdas bloqueadas",
+      "scoring": "desgaste-leve",
+      "scoringName": "Desgaste .2/60/6/−.1",
+      "games": 1000,
+      "meanTurns": 35.28,
+      "stdTurns": 4.232446101251622,
+      "meanMargin": 5.678553615960075,
+      "normalizedMargin": 0.4509644710262581,
+      "drawPercent": 19.8,
+      "goldWinPercent": 50.8,
+      "capPercent": 0,
+      "shares": {
+        "place": 47.725843638650225,
+        "go": 23.055963110459043,
+        "line": 22.26996436805703,
+        "attack": 6.948228882833707
+      },
+      "goLinePercent": 45.32592747851607,
+      "greedy": {
+        "games": 1000,
+        "greedyWinPercent": 98.7,
+        "randomWinPercent": 1.3,
+        "drawPercent": 0,
+        "tooTactical": true
+      }
+    }
+  ]
+}

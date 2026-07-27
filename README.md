@@ -34,3 +34,14 @@ Requiere Node.js 18 o posterior y no instala paquetes:
 ```bash
 node --test tests/*.test.js
 ```
+
+## Simulación de terminación y puntuación
+
+La matriz conjunta de las fases 2 y 3 se reproduce sin dependencias:
+
+```bash
+node simulations/phase2-3.js --games 1000 --greedy-games 1000 --seed 20260727
+```
+
+El comando genera `reports/fases-2-3.md` y `reports/fases-2-3.json`. El simulador
+es experimental y no modifica las reglas del `index.html`.
