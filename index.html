@@ -182,490 +182,562 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   <button onclick="resetGame()">Jugar de nuevo</button>
 </div>
 
-<script>
-// ==================== GAME STATE ====================
-const EMPTY = 0;
-const GOLD = 1;
-const PURPLE = 2;
+<script id="conquista-engine">
+// Motor puro: no accede al DOM ni utiliza temporizadores.
+globalThis.ConquistaEngine = (() => {
+  'use strict';
 
-let board = []; // [{value:0, owner:0}]
-let currentPlayer = GOLD;
-let scores = {[GOLD]:0, [PURPLE]:0};
+  const EMPTY = 0;
+  const GOLD = 1;
+  const PURPLE = 2;
+  const BOARD_SIZE = 81;
+
+  const emptyCell = () => ({value: 0, owner: EMPTY});
+  const copyBoard = source => source.map(cell => ({value: cell.value, owner: cell.owner}));
+  const otherPlayer = player => player === GOLD ? PURPLE : GOLD;
+  const getRow = index => Math.floor(index / 9);
+  const getCol = index => index % 9;
+  const boxTopLeft = box => Math.floor(box / 3) * 27 + (box % 3) * 3;
+
+  function cloneLastMove(lastMove) {
+    return lastMove ? {...lastMove} : null;
+  }
+
+  function snapshot(state) {
+    return {
+      board: copyBoard(state.board),
+      currentPlayer: state.currentPlayer,
+      scores: {[GOLD]: state.scores[GOLD], [PURPLE]: state.scores[PURPLE]},
+      consecutivePasses: state.consecutivePasses,
+      completedLines: [...state.completedLines],
+      gameOver: state.gameOver,
+      winner: state.winner,
+      turn: state.turn,
+      lastMove: cloneLastMove(state.lastMove),
+      effects: [],
+      error: null,
+    };
+  }
+
+  function createState(overrides = {}) {
+    const base = {
+      board: Array.from({length: BOARD_SIZE}, emptyCell),
+      currentPlayer: GOLD,
+      scores: {[GOLD]: 0, [PURPLE]: 0},
+      consecutivePasses: 0,
+      completedLines: [],
+      gameOver: false,
+      winner: EMPTY,
+      turn: 0,
+      lastMove: null,
+      effects: [],
+      error: null,
+      history: [],
+    };
+    return {
+      ...base,
+      ...overrides,
+      board: copyBoard(overrides.board || base.board),
+      scores: {...base.scores, ...(overrides.scores || {})},
+      completedLines: [...(overrides.completedLines || base.completedLines)],
+      effects: [...(overrides.effects || base.effects)],
+      history: [...(overrides.history || base.history)],
+      lastMove: cloneLastMove(overrides.lastMove || base.lastMove),
+    };
+  }
+
+  function getNeighbors(index) {
+    const row = getRow(index);
+    const col = getCol(index);
+    const neighbors = [];
+    if (row > 0) neighbors.push(index - 9);
+    if (row < 8) neighbors.push(index + 9);
+    if (col > 0) neighbors.push(index - 1);
+    if (col < 8) neighbors.push(index + 1);
+    return neighbors;
+  }
+
+  function isValidPlacement(state, index, number) {
+    if (!Number.isInteger(index) || index < 0 || index >= BOARD_SIZE) return false;
+    if (!Number.isInteger(number) || number < 1 || number > 9) return false;
+    if (state.board[index].value !== 0) return false;
+
+    const row = getRow(index);
+    const col = getCol(index);
+    for (let offset = 0; offset < 9; offset++) {
+      if (state.board[row * 9 + offset].value === number) return false;
+      if (state.board[offset * 9 + col].value === number) return false;
+    }
+
+    const boxRow = Math.floor(row / 3) * 3;
+    const boxCol = Math.floor(col / 3) * 3;
+    for (let rowOffset = 0; rowOffset < 3; rowOffset++) {
+      for (let colOffset = 0; colOffset < 3; colOffset++) {
+        if (state.board[(boxRow + rowOffset) * 9 + boxCol + colOffset].value === number) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  function getLegalPlacements(state, number) {
+    const legal = [];
+    for (let index = 0; index < BOARD_SIZE; index++) {
+      if (isValidPlacement(state, index, number)) legal.push(index);
+    }
+    return legal;
+  }
+
+  function hasValidPlacement(state, number) {
+    return getLegalPlacements(state, number).length > 0;
+  }
+
+  function getGroup(state, index) {
+    const owner = state.board[index].owner;
+    if (owner === EMPTY) return {cells: [], liberties: 0};
+
+    const visited = new Set();
+    const liberties = new Set();
+    const stack = [index];
+    while (stack.length > 0) {
+      const current = stack.pop();
+      if (visited.has(current)) continue;
+      visited.add(current);
+      for (const neighbor of getNeighbors(current)) {
+        if (state.board[neighbor].owner === EMPTY) liberties.add(neighbor);
+        else if (state.board[neighbor].owner === owner && !visited.has(neighbor)) stack.push(neighbor);
+      }
+    }
+    return {cells: [...visited], liberties: liberties.size};
+  }
+
+  function checkCaptures(state, placedIndex) {
+    const player = state.board[placedIndex].owner;
+    const captured = new Set();
+    for (const neighbor of getNeighbors(placedIndex)) {
+      const owner = state.board[neighbor].owner;
+      if (owner !== EMPTY && owner !== player) {
+        const group = getGroup(state, neighbor);
+        if (group.liberties === 0) group.cells.forEach(index => captured.add(index));
+      }
+    }
+    return [...captured];
+  }
+
+  function getBoxLines(box) {
+    const topLeft = boxTopLeft(box);
+    const cells = [];
+    for (let row = 0; row < 3; row++) {
+      for (let col = 0; col < 3; col++) cells.push(topLeft + row * 9 + col);
+    }
+    return [
+      [cells[0], cells[1], cells[2]],
+      [cells[3], cells[4], cells[5]],
+      [cells[6], cells[7], cells[8]],
+      [cells[0], cells[3], cells[6]],
+      [cells[1], cells[4], cells[7]],
+      [cells[2], cells[5], cells[8]],
+      [cells[0], cells[4], cells[8]],
+      [cells[2], cells[4], cells[6]],
+    ];
+  }
+
+  function checkLines(state, player) {
+    const completed = new Set(state.completedLines);
+    const newLines = [];
+    for (let box = 0; box < 9; box++) {
+      for (const line of getBoxLines(box)) {
+        const key = line.join(',');
+        if (!completed.has(key) && line.every(index => state.board[index].owner === player)) {
+          completed.add(key);
+          newLines.push(line);
+        }
+      }
+    }
+    return {completedLines: [...completed], newLines};
+  }
+
+  function isValidAttack(state, source, target, player = state.currentPlayer) {
+    if (!Number.isInteger(source) || !Number.isInteger(target)) return false;
+    if (source < 0 || source >= BOARD_SIZE || target < 0 || target >= BOARD_SIZE) return false;
+    if (state.board[source].owner !== player) return false;
+    if (state.board[target].owner === EMPTY || state.board[target].owner === player) return false;
+    const rowDistance = Math.abs(getRow(source) - getRow(target));
+    const colDistance = Math.abs(getCol(source) - getCol(target));
+    if (rowDistance > 1 || colDistance > 1 || (rowDistance === 0 && colDistance === 0)) return false;
+    return state.board[source].value > state.board[target].value;
+  }
+
+  function getLegalAttacks(state, player = state.currentPlayer) {
+    const attacks = [];
+    for (let source = 0; source < BOARD_SIZE; source++) {
+      if (state.board[source].owner !== player) continue;
+      const row = getRow(source);
+      const col = getCol(source);
+      for (let rowOffset = -1; rowOffset <= 1; rowOffset++) {
+        for (let colOffset = -1; colOffset <= 1; colOffset++) {
+          if (rowOffset === 0 && colOffset === 0) continue;
+          const targetRow = row + rowOffset;
+          const targetCol = col + colOffset;
+          if (targetRow < 0 || targetRow > 8 || targetCol < 0 || targetCol > 8) continue;
+          const target = targetRow * 9 + targetCol;
+          if (isValidAttack(state, source, target, player)) attacks.push({source, target});
+        }
+      }
+    }
+    return attacks;
+  }
+
+  function hasValidAttack(state, player = state.currentPlayer) {
+    return getLegalAttacks(state, player).length > 0;
+  }
+
+  function hasAnyValidMove(state, player = state.currentPlayer) {
+    for (let number = 1; number <= 9; number++) {
+      if (hasValidPlacement(state, number)) return true;
+    }
+    return hasValidAttack(state, player);
+  }
+
+  function resultWithError(state, error) {
+    return {...state, effects: [], error};
+  }
+
+  function finishTurn(previousState, nextState, lastMove) {
+    nextState.currentPlayer = otherPlayer(previousState.currentPlayer);
+    nextState.turn = previousState.turn + 1;
+    nextState.lastMove = {...lastMove, player: previousState.currentPlayer};
+    nextState.error = null;
+    nextState.history = [...previousState.history, snapshot(previousState)];
+
+    const movesRemain = hasAnyValidMove(nextState, nextState.currentPlayer) ||
+      hasAnyValidMove(nextState, otherPlayer(nextState.currentPlayer));
+    if (nextState.consecutivePasses >= 2 || !movesRemain) {
+      nextState.gameOver = true;
+      if (nextState.scores[GOLD] > nextState.scores[PURPLE]) nextState.winner = GOLD;
+      else if (nextState.scores[PURPLE] > nextState.scores[GOLD]) nextState.winner = PURPLE;
+      else nextState.winner = EMPTY;
+    }
+    return nextState;
+  }
+
+  function applyPlacement(state, move) {
+    const number = move.number ?? move.num;
+    if (!isValidPlacement(state, move.index, number)) return resultWithError(state, 'COLOCACION_INVALIDA');
+
+    const next = snapshot(state);
+    next.board[move.index] = {value: number, owner: state.currentPlayer};
+    next.scores[state.currentPlayer] += 1;
+    next.consecutivePasses = 0;
+
+    const captured = checkCaptures(next, move.index);
+    captured.forEach(index => { next.board[index] = emptyCell(); });
+    next.scores[state.currentPlayer] += captured.length * 2;
+
+    const lineResult = checkLines(next, state.currentPlayer);
+    next.completedLines = lineResult.completedLines;
+    next.scores[state.currentPlayer] += lineResult.newLines.length * 3;
+    next.effects = [];
+    if (captured.length > 0) next.effects.push({type: 'capture', indices: captured});
+    if (lineResult.newLines.length > 0) next.effects.push({type: 'line', lines: lineResult.newLines});
+
+    return finishTurn(state, next, {type: 'place', index: move.index, number});
+  }
+
+  function applyAttack(state, move) {
+    if (!isValidAttack(state, move.source, move.target)) return resultWithError(state, 'ATAQUE_INVALIDO');
+    const next = snapshot(state);
+    next.board[move.target] = emptyCell();
+    next.scores[state.currentPlayer] += 1;
+    next.consecutivePasses = 0;
+    next.effects = [{type: 'capture', indices: [move.target]}];
+    return finishTurn(state, next, {type: 'attack', source: move.source, target: move.target});
+  }
+
+  function applyPass(state) {
+    const next = snapshot(state);
+    next.consecutivePasses += 1;
+    next.effects = [];
+    return finishTurn(state, next, {type: 'pass'});
+  }
+
+  function applyUndo(state) {
+    if (state.history.length === 0) return resultWithError(state, 'SIN_HISTORIAL');
+    const restored = snapshot(state.history[state.history.length - 1]);
+    restored.history = state.history.slice(0, -1);
+    restored.effects = [];
+    restored.error = null;
+    return restored;
+  }
+
+  function applyMove(state, move) {
+    if (!state || !move || typeof move.type !== 'string') return resultWithError(state, 'JUGADA_INVALIDA');
+    if (move.type === 'undo') return applyUndo(state);
+    if (state.gameOver) return resultWithError(state, 'JUEGO_TERMINADO');
+    if (move.type === 'place') return applyPlacement(state, move);
+    if (move.type === 'attack') return applyAttack(state, move);
+    if (move.type === 'pass') return applyPass(state);
+    return resultWithError(state, 'TIPO_DESCONOCIDO');
+  }
+
+  return Object.freeze({
+    EMPTY,
+    GOLD,
+    PURPLE,
+    createState,
+    applyMove,
+    isValidPlacement,
+    getLegalPlacements,
+    hasValidPlacement,
+    getNeighbors,
+    getGroup,
+    checkCaptures,
+    checkLines,
+    isValidAttack,
+    getLegalAttacks,
+    hasValidAttack,
+    hasAnyValidMove,
+  });
+})();
+</script>
+
+<script>
+// Adaptador de interfaz: solo solicita transiciones al motor y dibuja su resultado.
+const Engine = globalThis.ConquistaEngine;
+const {EMPTY, GOLD, PURPLE} = Engine;
+
+let gameState = Engine.createState();
 let selectedNum = null;
 let attackMode = false;
 let attackSource = null;
-let consecutivePasses = 0;
-let moveHistory = [];
-let completedLines = new Set(); // track scored lines to avoid double-counting
-let gameOver = false;
+let animationTimer = null;
 
-// ==================== INIT ====================
-function initBoard() {
-  board = Array.from({length:81}, () => ({value:0, owner:EMPTY}));
-  currentPlayer = GOLD;
-  scores = {[GOLD]:0, [PURPLE]:0};
-  selectedNum = null;
-  attackMode = false;
-  attackSource = null;
-  consecutivePasses = 0;
-  moveHistory = [];
-  completedLines = new Set();
-  gameOver = false;
-  render();
+function clearAnimationTimer() {
+  if (animationTimer !== null) {
+    clearTimeout(animationTimer);
+    animationTimer = null;
+  }
 }
 
-// ==================== RENDERING ====================
 function render() {
   renderBoard();
   renderSelector();
   renderScores();
   renderStatus();
+  renderWinner();
 }
 
 function renderBoard() {
   const boardEl = document.getElementById('board');
   boardEl.innerHTML = '';
-  for (let i = 0; i < 81; i++) {
+  for (let index = 0; index < 81; index++) {
     const cell = document.createElement('div');
+    const piece = gameState.board[index];
     cell.className = 'cell';
-    const r = Math.floor(i / 9), c = i % 9;
 
-    if (board[i].owner === GOLD) cell.classList.add('gold-piece');
-    else if (board[i].owner === PURPLE) cell.classList.add('purple-piece');
-
-    if (board[i].value > 0) {
-      cell.textContent = board[i].value;
+    if (piece.owner === GOLD) cell.classList.add('gold-piece');
+    else if (piece.owner === PURPLE) cell.classList.add('purple-piece');
+    if (piece.value > 0) {
+      cell.textContent = piece.value;
       cell.classList.add('occupied');
     }
 
-    // Highlight valid attack targets
-    if (attackMode && attackSource !== null && board[i].owner !== EMPTY && board[i].owner !== currentPlayer) {
-      const sr = Math.floor(attackSource / 9), sc = attackSource % 9;
-      if (Math.abs(sr - r) <= 1 && Math.abs(sc - c) <= 1 && !(sr === r && sc === c)) {
-        const sourceVal = board[attackSource].value;
-        if (sourceVal > board[i].value) {
-          cell.classList.add('attack-target');
-        }
-      }
+    if (attackMode && attackSource !== null &&
+        Engine.isValidAttack(gameState, attackSource, index)) {
+      cell.classList.add('attack-target');
+    }
+    if (attackMode && attackSource === index) cell.classList.add('selected');
+    if (gameState.lastMove?.type === 'place' && gameState.lastMove.index === index) {
+      cell.classList.add('last-move');
     }
 
-    // Highlight selected attack source
-    if (attackMode && attackSource === i) {
-      cell.classList.add('selected');
-    }
-
-    // Last move indicator
-    if (moveHistory.length > 0) {
-      const last = moveHistory[moveHistory.length - 1];
-      if (last.type === 'place' && last.index === i) cell.classList.add('last-move');
-    }
-
-    cell.addEventListener('click', () => onCellClick(i));
+    cell.addEventListener('click', () => onCellClick(index));
     boardEl.appendChild(cell);
   }
 }
 
 function renderSelector() {
-  const sel = document.getElementById('numSelector');
-  sel.innerHTML = '';
-  for (let n = 1; n <= 9; n++) {
-    const btn = document.createElement('button');
-    btn.className = 'num-btn';
-    btn.textContent = n;
-    if (selectedNum === n && !attackMode) btn.classList.add('selected');
-    if (!attackMode && !hasValidPlacement(n)) btn.classList.add('disabled');
-    btn.addEventListener('click', () => {
-      if (gameOver) return;
+  const selector = document.getElementById('numSelector');
+  selector.innerHTML = '';
+  for (let number = 1; number <= 9; number++) {
+    const button = document.createElement('button');
+    button.className = 'num-btn';
+    button.textContent = number;
+    if (selectedNum === number && !attackMode) button.classList.add('selected');
+    if (!attackMode && !Engine.hasValidPlacement(gameState, number)) button.classList.add('disabled');
+    button.addEventListener('click', () => {
+      if (gameState.gameOver) return;
       attackMode = false;
       attackSource = null;
-      selectedNum = n;
+      selectedNum = number;
       render();
     });
-    sel.appendChild(btn);
+    selector.appendChild(button);
   }
-  // Attack button
-  const atkBtn = document.createElement('button');
-  atkBtn.className = 'num-btn attack-btn';
-  atkBtn.textContent = 'Atacar';
-  if (attackMode) atkBtn.classList.add('selected');
-  if (!hasValidAttack()) atkBtn.classList.add('disabled');
-  atkBtn.addEventListener('click', () => {
-    if (gameOver) return;
+
+  const attackButton = document.createElement('button');
+  attackButton.className = 'num-btn attack-btn';
+  attackButton.textContent = 'Atacar';
+  if (attackMode) attackButton.classList.add('selected');
+  if (!Engine.hasValidAttack(gameState)) attackButton.classList.add('disabled');
+  attackButton.addEventListener('click', () => {
+    if (gameState.gameOver) return;
     attackMode = !attackMode;
     attackSource = null;
     selectedNum = null;
     render();
   });
-  sel.appendChild(atkBtn);
+  selector.appendChild(attackButton);
 }
 
 function renderScores() {
-  document.getElementById('goldVal').textContent = scores[GOLD];
-  document.getElementById('purpleVal').textContent = scores[PURPLE];
-  document.getElementById('scoreGold').classList.toggle('active', currentPlayer === GOLD);
-  document.getElementById('scorePurple').classList.toggle('active', currentPlayer === PURPLE);
+  document.getElementById('goldVal').textContent = gameState.scores[GOLD];
+  document.getElementById('purpleVal').textContent = gameState.scores[PURPLE];
+  document.getElementById('scoreGold').classList.toggle('active', gameState.currentPlayer === GOLD);
+  document.getElementById('scorePurple').classList.toggle('active', gameState.currentPlayer === PURPLE);
 }
 
 function renderStatus() {
-  const statusEl = document.getElementById('status');
-  if (gameOver) {
-    statusEl.textContent = 'Juego terminado';
-    statusEl.className = 'status';
+  const status = document.getElementById('status');
+  if (gameState.gameOver) {
+    status.textContent = 'Juego terminado';
+    status.className = 'status';
     return;
   }
-  const name = currentPlayer === GOLD ? 'Oro' : 'Púrpura';
+  const name = gameState.currentPlayer === GOLD ? 'Oro' : 'Púrpura';
   if (attackMode) {
-    statusEl.textContent = attackSource === null
+    status.textContent = attackSource === null
       ? `${name} — Selecciona tu pieza para atacar`
       : `${name} — Selecciona pieza enemiga adyacente (número menor)`;
   } else if (selectedNum) {
-    statusEl.textContent = `${name} — Coloca el ${selectedNum} en el tablero`;
+    status.textContent = `${name} — Coloca el ${selectedNum} en el tablero`;
   } else {
-    statusEl.textContent = `Turno de ${name} — Elige un número o ataca`;
+    status.textContent = `Turno de ${name} — Elige un número o ataca`;
   }
-  statusEl.className = 'status ' + (currentPlayer === GOLD ? 'gold-turn' : 'purple-turn');
+  status.className = 'status ' + (gameState.currentPlayer === GOLD ? 'gold-turn' : 'purple-turn');
 }
 
-// ==================== GAME LOGIC ====================
-function getRow(i) { return Math.floor(i / 9); }
-function getCol(i) { return i % 9; }
-function getBox(i) { return Math.floor(getRow(i) / 3) * 3 + Math.floor(getCol(i) / 3); }
-function boxTopLeft(box) { return (Math.floor(box / 3) * 3) * 9 + (box % 3) * 3; }
-
-function isValidPlacement(index, num) {
-  if (board[index].value !== 0) return false;
-  const r = getRow(index), c = getCol(index);
-  // Check row
-  for (let j = 0; j < 9; j++) {
-    if (board[r * 9 + j].value === num) return false;
-  }
-  // Check col
-  for (let j = 0; j < 9; j++) {
-    if (board[j * 9 + c].value === num) return false;
-  }
-  // Check 3x3 box
-  const br = Math.floor(r / 3) * 3, bc = Math.floor(c / 3) * 3;
-  for (let dr = 0; dr < 3; dr++) {
-    for (let dc = 0; dc < 3; dc++) {
-      if (board[(br + dr) * 9 + (bc + dc)].value === num) return false;
-    }
-  }
-  return true;
-}
-
-function hasValidPlacement(num) {
-  for (let i = 0; i < 81; i++) {
-    if (isValidPlacement(i, num)) return true;
-  }
-  return false;
-}
-
-function hasAnyValidMove() {
-  for (let n = 1; n <= 9; n++) {
-    if (hasValidPlacement(n)) return true;
-  }
-  return hasValidAttack();
-}
-
-function getNeighbors(index) {
-  const r = getRow(index), c = getCol(index);
-  const n = [];
-  if (r > 0) n.push(index - 9);
-  if (r < 8) n.push(index + 9);
-  if (c > 0) n.push(index - 1);
-  if (c < 8) n.push(index + 1);
-  return n;
-}
-
-// Go-style liberty check
-function getGroup(index) {
-  const owner = board[index].owner;
-  if (owner === EMPTY) return {cells: [], liberties: 0};
-  const visited = new Set();
-  const stack = [index];
-  let liberties = 0;
-  while (stack.length > 0) {
-    const cur = stack.pop();
-    if (visited.has(cur)) continue;
-    visited.add(cur);
-    for (const nb of getNeighbors(cur)) {
-      if (board[nb].owner === EMPTY) liberties++;
-      else if (board[nb].owner === owner && !visited.has(nb)) stack.push(nb);
-    }
-  }
-  return {cells: [...visited], liberties};
-}
-
-function checkCaptures(placedIndex) {
-  const captured = [];
-  const player = board[placedIndex].owner;
-  // Check neighbor groups of opponent
-  for (const nb of getNeighbors(placedIndex)) {
-    if (board[nb].owner !== EMPTY && board[nb].owner !== player) {
-      const group = getGroup(nb);
-      if (group.liberties === 0) {
-        captured.push(...group.cells);
-      }
-    }
-  }
-  return [...new Set(captured)];
-}
-
-// Tic-tac-toe line check within 3x3 sub-regions
-function checkLines(player) {
-  let newLines = 0;
-  for (let box = 0; box < 9; box++) {
-    const tl = boxTopLeft(box);
-    const cells = [];
-    for (let dr = 0; dr < 3; dr++) {
-      for (let dc = 0; dc < 3; dc++) {
-        cells.push(tl + dr * 9 + dc);
-      }
-    }
-    // 8 possible lines in a 3x3
-    const lines = [
-      [cells[0], cells[1], cells[2]], // rows
-      [cells[3], cells[4], cells[5]],
-      [cells[6], cells[7], cells[8]],
-      [cells[0], cells[3], cells[6]], // cols
-      [cells[1], cells[4], cells[7]],
-      [cells[2], cells[5], cells[8]],
-      [cells[0], cells[4], cells[8]], // diags
-      [cells[2], cells[4], cells[6]],
-    ];
-    for (const line of lines) {
-      const key = line.join(',');
-      if (completedLines.has(key)) continue;
-      if (line.every(i => board[i].owner === player)) {
-        completedLines.add(key);
-        newLines++;
-        // Animate
-        setTimeout(() => {
-          line.forEach(i => {
-            const cellEl = document.getElementById('board').children[i];
-            if (cellEl) cellEl.classList.add('scored');
-            setTimeout(() => cellEl && cellEl.classList.remove('scored'), 500);
-          });
-        }, 100);
-      }
-    }
-  }
-  return newLines;
-}
-
-function hasValidAttack() {
-  for (let i = 0; i < 81; i++) {
-    if (board[i].owner !== currentPlayer) continue;
-    const r = getRow(i), c = getCol(i);
-    for (let dr = -1; dr <= 1; dr++) {
-      for (let dc = -1; dc <= 1; dc++) {
-        if (dr === 0 && dc === 0) continue;
-        const nr = r + dr, nc = c + dc;
-        if (nr < 0 || nr > 8 || nc < 0 || nc > 8) continue;
-        const ni = nr * 9 + nc;
-        if (board[ni].owner !== EMPTY && board[ni].owner !== currentPlayer && board[i].value > board[ni].value) {
-          return true;
-        }
-      }
-    }
-  }
-  return false;
-}
-
-// ==================== ACTIONS ====================
-function onCellClick(index) {
-  if (gameOver) return;
-
-  if (attackMode) {
-    handleAttack(index);
-    return;
-  }
-
-  if (selectedNum === null) return;
-  if (!isValidPlacement(index, selectedNum)) {
-    // Flash invalid
-    const cellEl = document.getElementById('board').children[index];
-    cellEl.classList.add('invalid-flash');
-    setTimeout(() => cellEl.classList.remove('invalid-flash'), 300);
-    return;
-  }
-
-  // Save state for undo
-  moveHistory.push({
-    type: 'place',
-    index,
-    num: selectedNum,
-    player: currentPlayer,
-    prevBoard: JSON.parse(JSON.stringify(board)),
-    prevScores: {...scores},
-    prevCompletedLines: new Set(completedLines),
-  });
-
-  // Place piece
-  board[index] = {value: selectedNum, owner: currentPlayer};
-  scores[currentPlayer] += 1; // 1 point for placing
-  consecutivePasses = 0;
-
-  // Check Go captures
-  const captured = checkCaptures(index);
-  if (captured.length > 0) {
-    scores[currentPlayer] += captured.length * 2;
-    captured.forEach(ci => {
-      const cellEl = document.getElementById('board').children[ci];
-      if (cellEl) {
-        cellEl.classList.add('captured');
-      }
-    });
-    setTimeout(() => {
-      captured.forEach(ci => {
-        board[ci] = {value: 0, owner: EMPTY};
-      });
-      // Check lines after captures resolved
-      const lines = checkLines(currentPlayer);
-      scores[currentPlayer] += lines * 3;
-      endTurn();
-    }, 400);
-    return;
-  }
-
-  // Check tic-tac-toe lines
-  const lines = checkLines(currentPlayer);
-  scores[currentPlayer] += lines * 3;
-
-  endTurn();
-}
-
-function handleAttack(index) {
-  if (attackSource === null) {
-    // Select source (must be current player's piece)
-    if (board[index].owner !== currentPlayer) return;
-    attackSource = index;
-    render();
-    return;
-  }
-
-  // Select target
-  const sr = getRow(attackSource), sc = getCol(attackSource);
-  const tr = getRow(index), tc = getCol(index);
-  if (Math.abs(sr - tr) > 1 || Math.abs(sc - tc) > 1 || (sr === tr && sc === tc)) {
-    attackSource = null;
-    render();
-    return;
-  }
-  if (board[index].owner === EMPTY || board[index].owner === currentPlayer) {
-    attackSource = null;
-    render();
-    return;
-  }
-  if (board[attackSource].value <= board[index].value) {
-    attackSource = null;
-    render();
-    return;
-  }
-
-  // Save for undo
-  moveHistory.push({
-    type: 'attack',
-    source: attackSource,
-    target: index,
-    player: currentPlayer,
-    prevBoard: JSON.parse(JSON.stringify(board)),
-    prevScores: {...scores},
-    prevCompletedLines: new Set(completedLines),
-  });
-
-  // Execute attack
-  const cellEl = document.getElementById('board').children[index];
-  cellEl.classList.add('captured');
-  setTimeout(() => {
-    board[index] = {value: 0, owner: EMPTY};
-    scores[currentPlayer] += 1;
-    consecutivePasses = 0;
-    attackMode = false;
-    attackSource = null;
-    endTurn();
-  }, 400);
-}
-
-function endTurn() {
-  selectedNum = null;
-  attackMode = false;
-  attackSource = null;
-  currentPlayer = currentPlayer === GOLD ? PURPLE : GOLD;
-
-  // Check game end
-  if (consecutivePasses >= 2 || !hasAnyValidMoveForEither()) {
-    endGame();
-    return;
-  }
-  render();
-}
-
-function hasAnyValidMoveForEither() {
-  const saved = currentPlayer;
-  // Check current
-  let has = hasAnyValidMove();
-  if (has) { currentPlayer = saved; return true; }
-  // Check other
-  currentPlayer = currentPlayer === GOLD ? PURPLE : GOLD;
-  has = hasAnyValidMove();
-  currentPlayer = saved;
-  return has;
-}
-
-function passTurn() {
-  if (gameOver) return;
-  consecutivePasses++;
-  moveHistory.push({
-    type: 'pass',
-    player: currentPlayer,
-    prevBoard: JSON.parse(JSON.stringify(board)),
-    prevScores: {...scores},
-    prevCompletedLines: new Set(completedLines),
-  });
-  endTurn();
-}
-
-function undoMove() {
-  if (moveHistory.length === 0 || gameOver) return;
-  const last = moveHistory.pop();
-  board = last.prevBoard;
-  scores = last.prevScores;
-  completedLines = last.prevCompletedLines;
-  currentPlayer = last.player;
-  consecutivePasses = Math.max(0, consecutivePasses - 1);
-  selectedNum = null;
-  attackMode = false;
-  attackSource = null;
-  render();
-}
-
-function endGame() {
-  gameOver = true;
-  render();
+function renderWinner() {
   const overlay = document.getElementById('winnerOverlay');
+  overlay.classList.remove('gold-wins', 'purple-wins', 'draw', 'show');
+  if (!gameState.gameOver) return;
+
   const text = document.getElementById('winnerText');
-  const score = document.getElementById('winnerScore');
-
-  overlay.classList.remove('gold-wins', 'purple-wins', 'draw');
-
-  if (scores[GOLD] > scores[PURPLE]) {
+  if (gameState.winner === GOLD) {
     text.textContent = '¡Oro Gana!';
     overlay.classList.add('gold-wins');
-  } else if (scores[PURPLE] > scores[GOLD]) {
+  } else if (gameState.winner === PURPLE) {
     text.textContent = '¡Púrpura Gana!';
     overlay.classList.add('purple-wins');
   } else {
     text.textContent = '¡Empate!';
     overlay.classList.add('draw');
   }
-  score.textContent = `Oro ${scores[GOLD]} — ${scores[PURPLE]} Púrpura`;
+  document.getElementById('winnerScore').textContent =
+    `Oro ${gameState.scores[GOLD]} — ${gameState.scores[PURPLE]} Púrpura`;
   overlay.classList.add('show');
 }
 
+function animateEffects(previousState, nextState) {
+  clearAnimationTimer();
+  const capture = nextState.effects.find(effect => effect.type === 'capture');
+  const lines = nextState.effects.find(effect => effect.type === 'line');
+
+  if (capture) {
+    capture.indices.forEach(index => {
+      const cell = document.getElementById('board').children[index];
+      if (cell && previousState.board[index].owner !== EMPTY) cell.classList.add('captured');
+    });
+  }
+  if (lines) {
+    lines.lines.flat().forEach(index => {
+      const cell = document.getElementById('board').children[index];
+      if (cell) cell.classList.add('scored');
+    });
+  }
+
+  if (capture || lines) {
+    animationTimer = setTimeout(() => {
+      animationTimer = null;
+      render();
+    }, 400);
+    return true;
+  }
+  return false;
+}
+
+function commitMove(move) {
+  const previousState = gameState;
+  const nextState = Engine.applyMove(previousState, move);
+  if (nextState.error) return false;
+
+  gameState = nextState;
+  selectedNum = null;
+  attackMode = false;
+  attackSource = null;
+  if (!animateEffects(previousState, nextState)) render();
+  return true;
+}
+
+function flashInvalid(index) {
+  const cell = document.getElementById('board').children[index];
+  if (!cell) return;
+  cell.classList.add('invalid-flash');
+  setTimeout(() => cell.classList.remove('invalid-flash'), 300);
+}
+
+function onCellClick(index) {
+  if (gameState.gameOver || animationTimer !== null) return;
+  if (attackMode) {
+    handleAttack(index);
+    return;
+  }
+  if (selectedNum === null) return;
+  if (!Engine.isValidPlacement(gameState, index, selectedNum)) {
+    flashInvalid(index);
+    return;
+  }
+  commitMove({type: 'place', index, number: selectedNum});
+}
+
+function handleAttack(index) {
+  if (attackSource === null) {
+    if (gameState.board[index].owner !== gameState.currentPlayer) return;
+    attackSource = index;
+    render();
+    return;
+  }
+  if (!Engine.isValidAttack(gameState, attackSource, index)) {
+    attackSource = null;
+    render();
+    return;
+  }
+  commitMove({type: 'attack', source: attackSource, target: index});
+}
+
+function passTurn() {
+  if (gameState.gameOver || animationTimer !== null) return;
+  commitMove({type: 'pass'});
+}
+
+function undoMove() {
+  if (gameState.history.length === 0) return;
+  clearAnimationTimer();
+  gameState = Engine.applyMove(gameState, {type: 'undo'});
+  selectedNum = null;
+  attackMode = false;
+  attackSource = null;
+  render();
+}
+
 function resetGame() {
-  document.getElementById('winnerOverlay').classList.remove('show');
-  initBoard();
+  clearAnimationTimer();
+  gameState = Engine.createState();
+  selectedNum = null;
+  attackMode = false;
+  attackSource = null;
+  render();
 }
 
 function showRules() {
@@ -678,8 +750,7 @@ function hideRules() {
   document.getElementById('rulesOverlay').classList.remove('show');
 }
 
-// ==================== START ====================
-initBoard();
+render();
 </script>
 </body>
 </html>
