@@ -191,6 +191,7 @@ globalThis.ConquistaEngine = (() => {
   const GOLD = 1;
   const PURPLE = 2;
   const BOARD_SIZE = 81;
+  const HISTORY_LIMIT = 50;
 
   const emptyCell = () => ({value: 0, owner: EMPTY});
   const copyBoard = source => source.map(cell => ({value: cell.value, owner: cell.owner}));
@@ -219,6 +220,17 @@ globalThis.ConquistaEngine = (() => {
     };
   }
 
+  function copyHistory(history) {
+    return history.map(entry => snapshot(entry));
+  }
+
+  function copyState(state) {
+    return {
+      ...snapshot(state),
+      history: copyHistory(state.history),
+    };
+  }
+
   function createState(overrides = {}) {
     const base = {
       board: Array.from({length: BOARD_SIZE}, emptyCell),
@@ -241,7 +253,7 @@ globalThis.ConquistaEngine = (() => {
       scores: {...base.scores, ...(overrides.scores || {})},
       completedLines: [...(overrides.completedLines || base.completedLines)],
       effects: [...(overrides.effects || base.effects)],
-      history: [...(overrides.history || base.history)],
+      history: copyHistory(overrides.history || base.history),
       lastMove: cloneLastMove(overrides.lastMove || base.lastMove),
     };
   }
@@ -401,7 +413,20 @@ globalThis.ConquistaEngine = (() => {
   }
 
   function resultWithError(state, error) {
-    return {...state, effects: [], error};
+    return {...copyState(state), effects: [], error};
+  }
+
+  function assertValidState(state) {
+    const valid = state !== null &&
+      typeof state === 'object' &&
+      Array.isArray(state.board) &&
+      state.board.length === BOARD_SIZE &&
+      state.scores !== null &&
+      typeof state.scores === 'object' &&
+      Array.isArray(state.completedLines) &&
+      Array.isArray(state.history) &&
+      (state.currentPlayer === GOLD || state.currentPlayer === PURPLE);
+    if (!valid) throw new TypeError('Estado de juego inválido');
   }
 
   function finishTurn(previousState, nextState, lastMove) {
@@ -409,7 +434,10 @@ globalThis.ConquistaEngine = (() => {
     nextState.turn = previousState.turn + 1;
     nextState.lastMove = {...lastMove, player: previousState.currentPlayer};
     nextState.error = null;
-    nextState.history = [...previousState.history, snapshot(previousState)];
+    nextState.history = [
+      ...copyHistory(previousState.history),
+      snapshot(previousState),
+    ].slice(-HISTORY_LIMIT);
 
     const movesRemain = hasAnyValidMove(nextState, nextState.currentPlayer) ||
       hasAnyValidMove(nextState, otherPlayer(nextState.currentPlayer));
@@ -465,16 +493,17 @@ globalThis.ConquistaEngine = (() => {
   function applyUndo(state) {
     if (state.history.length === 0) return resultWithError(state, 'SIN_HISTORIAL');
     const restored = snapshot(state.history[state.history.length - 1]);
-    restored.history = state.history.slice(0, -1);
+    restored.history = copyHistory(state.history.slice(0, -1));
     restored.effects = [];
     restored.error = null;
     return restored;
   }
 
   function applyMove(state, move) {
-    if (!state || !move || typeof move.type !== 'string') return resultWithError(state, 'JUGADA_INVALIDA');
-    if (move.type === 'undo') return applyUndo(state);
+    assertValidState(state);
+    if (!move || typeof move.type !== 'string') return resultWithError(state, 'JUGADA_INVALIDA');
     if (state.gameOver) return resultWithError(state, 'JUEGO_TERMINADO');
+    if (move.type === 'undo') return applyUndo(state);
     if (move.type === 'place') return applyPlacement(state, move);
     if (move.type === 'attack') return applyAttack(state, move);
     if (move.type === 'pass') return applyPass(state);
@@ -485,6 +514,7 @@ globalThis.ConquistaEngine = (() => {
     EMPTY,
     GOLD,
     PURPLE,
+    HISTORY_LIMIT,
     createState,
     applyMove,
     isValidPlacement,
@@ -722,9 +752,11 @@ function passTurn() {
 }
 
 function undoMove() {
-  if (gameState.history.length === 0) return;
+  if (gameState.gameOver || gameState.history.length === 0) return;
   clearAnimationTimer();
-  gameState = Engine.applyMove(gameState, {type: 'undo'});
+  const nextState = Engine.applyMove(gameState, {type: 'undo'});
+  if (nextState.error) return;
+  gameState = nextState;
   selectedNum = null;
   attackMode = false;
   attackSource = null;

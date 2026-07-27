@@ -21,6 +21,12 @@ ConquistaEngine.applyMove(estado, jugada)
 El motor no utiliza DOM ni temporizadores. Las demoras se reservan para efectos
 visuales y nunca modifican el estado.
 
+Los estados de error también se devuelven como copias independientes. Un estado
+nulo o estructuralmente inválido lanza `TypeError` para impedir que la interfaz
+adopte un estado incompleto. Deshacer conserva el comportamiento original y se
+bloquea una vez terminada la partida. El historial mantiene como máximo los 50
+estados más recientes para acotar su consumo de memoria.
+
 ## Pruebas
 
 Requiere Node.js 18 o posterior y no instala paquetes:

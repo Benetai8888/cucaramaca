@@ -71,7 +71,8 @@ test('rechaza una jugada ilegal sin alterar el estado', () => {
   const state = Engine.createState({board: boardWith([[0, 5, GOLD]])});
   const result = Engine.applyMove(state, {type: 'place', index: 8, number: 5});
   assert.equal(result.error, 'COLOCACION_INVALIDA');
-  assert.strictEqual(result.board, state.board);
+  assert.notStrictEqual(result.board, state.board);
+  assert.deepEqual(plain(result.board), plain(state.board));
   assert.equal(result.turn, 0);
   assert.equal(result.history.length, 0);
 });
@@ -136,6 +137,57 @@ test('dos pases consecutivos terminan la partida', () => {
   const second = Engine.applyMove(first, {type: 'pass'});
   assert.equal(second.gameOver, true);
   assert.equal(second.winner, EMPTY);
+});
+
+test('una jugada inválida devuelve un estado profundamente independiente', () => {
+  const state = Engine.applyMove(Engine.createState(), {type: 'pass'});
+  const result = Engine.applyMove(state, {type: 'desconocida'});
+
+  assert.equal(result.error, 'TIPO_DESCONOCIDO');
+  assert.notStrictEqual(result.board, state.board);
+  assert.notStrictEqual(result.scores, state.scores);
+  assert.notStrictEqual(result.completedLines, state.completedLines);
+  assert.notStrictEqual(result.history, state.history);
+  assert.notStrictEqual(result.history[0], state.history[0]);
+  assert.notStrictEqual(result.history[0].board, state.history[0].board);
+});
+
+test('applyMove rechaza explícitamente un estado nulo o estructuralmente inválido', () => {
+  assert.throws(
+    () => Engine.applyMove(null, {type: 'pass'}),
+    {name: 'TypeError', message: /estado/i},
+  );
+  assert.throws(
+    () => Engine.applyMove({board: []}, {type: 'pass'}),
+    {name: 'TypeError', message: /estado/i},
+  );
+});
+
+test('deshacer queda bloqueado después de terminar la partida', () => {
+  const first = Engine.applyMove(Engine.createState(), {type: 'pass'});
+  const finished = Engine.applyMove(first, {type: 'pass'});
+  const result = Engine.applyMove(finished, {type: 'undo'});
+
+  assert.equal(result.error, 'JUEGO_TERMINADO');
+  assert.equal(result.gameOver, true);
+  assert.equal(result.turn, finished.turn);
+  assert.equal(result.history.length, finished.history.length);
+});
+
+test('el historial y su memoria permanecen acotados durante 3,000 turnos', () => {
+  let state = Engine.createState();
+  for (let turn = 0; turn < 3000; turn++) {
+    state = Engine.createState({
+      ...state,
+      gameOver: false,
+      consecutivePasses: 0,
+    });
+    state = Engine.applyMove(state, {type: 'pass'});
+  }
+
+  const historyBytes = Buffer.byteLength(JSON.stringify(state.history), 'utf8');
+  assert.ok(state.history.length <= 50, `historial sin límite: ${state.history.length}`);
+  assert.ok(historyBytes <= 250_000, `historial excesivo: ${historyBytes} bytes`);
 });
 
 test('soporta partidas aleatorias prolongadas sin corromper invariantes', () => {
